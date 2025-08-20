@@ -67,14 +67,14 @@ st.markdown("""
         border: 1px solid #ffc107;
     }
     .qualified {
-        background-color: #d1edff;
-        border-left: 4px solid #0066cc;
-        color: #004085;
+        background-color: #d4edda;
+        border-left: 4px solid #28a745;
+        color: #155724;
     }
     .qualified .targets {
-        background-color: rgba(0, 102, 204, 0.2);
-        color: #004085;
-        border: 1px solid #0066cc;
+        background-color: rgba(40, 167, 69, 0.2);
+        color: #155724;
+        border: 1px solid #28a745;
     }
     .eliminated {
         background-color: #f8d7da;
