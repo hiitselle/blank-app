@@ -58,6 +58,19 @@ st.markdown("""
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         text-align: center;
+        color: #333333;
+    }
+    .metric-card h4 {
+        color: #666666;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    .metric-card h2 {
+        color: #333333;
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
     }
 </style>
 """, unsafe_allow_html=True)
