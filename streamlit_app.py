@@ -34,8 +34,14 @@ st.markdown("""
         padding: 0.5rem;
         margin: 0.2rem 0;
         border-radius: 5px;
-        color: #333333;
+        color: #ffffff;
         font-weight: 500;
+    }
+    .athlete-row strong {
+        color: #ffffff;
+    }
+    .athlete-row small {
+        color: #e0e0e0;
     }
     .athlete-row .targets {
         color: #ffffff;
