@@ -31,40 +31,70 @@ st.markdown("""
         margin: 1rem 0;
     }
     .athlete-row {
-        padding: 0.5rem;
-        margin: 0.2rem 0;
-        border-radius: 5px;
-        color: #ffffff;
+        padding: 0.75rem;
+        margin: 0.3rem 0;
+        border-radius: 8px;
         font-weight: 500;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .athlete-row strong {
-        color: #ffffff;
+        font-size: 1.1rem;
+        display: block;
+        margin-bottom: 0.25rem;
     }
     .athlete-row small {
-        color: #e0e0e0;
+        font-size: 0.9rem;
+        opacity: 0.8;
     }
     .athlete-row .targets {
-        color: #ffffff;
-        background-color: rgba(0, 0, 0, 0.7);
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        margin-top: 0.25rem;
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        margin-top: 0.4rem;
         display: inline-block;
+        font-weight: 600;
+        border: 1px solid rgba(0, 0, 0, 0.2);
     }
     .podium-position {
         background-color: #fff3cd;
         border-left: 4px solid #ffc107;
         color: #856404;
     }
+    .podium-position .targets {
+        background-color: rgba(255, 193, 7, 0.2);
+        color: #856404;
+        border: 1px solid #ffc107;
+    }
     .qualified {
         background-color: #d1edff;
         border-left: 4px solid #0066cc;
         color: #004085;
     }
+    .qualified .targets {
+        background-color: rgba(0, 102, 204, 0.2);
+        color: #004085;
+        border: 1px solid #0066cc;
+    }
     .eliminated {
         background-color: #f8d7da;
         border-left: 4px solid #dc3545;
         color: #721c24;
+    }
+    .eliminated .targets {
+        background-color: rgba(220, 53, 69, 0.2);
+        color: #721c24;
+        border: 1px solid #dc3545;
+    }
+    .awaiting-result {
+        background-color: #f8f9fa;
+        border-left: 4px solid #6c757d;
+        color: #495057;
+    }
+    .awaiting-result .targets {
+        background-color: rgba(108, 117, 125, 0.2);
+        color: #495057;
+        border: 1px solid #6c757d;
     }
     .metric-card {
         background: white;
@@ -137,7 +167,7 @@ def load_sheet_data(url):
 def get_status_emoji(status_text):
     """Get emoji based on status"""
     if pd.isna(status_text):
-        return "❓"
+        return "⏳"
     status_str = str(status_text).lower()
     if "qualified" in status_str or "✓✓" in status_str:
         return "✅"
@@ -261,8 +291,8 @@ def display_boulder_results(df, competition_name):
                 card_class = "eliminated"
                 position_emoji = "❌"
         except:
-            card_class = ""
-            position_emoji = "❓"
+            card_class = "awaiting-result"
+            position_emoji = "⏳"
         
         # Boulder scores
         boulder_scores = []
@@ -384,9 +414,12 @@ def display_lead_results(df, competition_name):
         rank = row.get('Current Rank', 'N/A')
         status = row.get('Status', 'Unknown')
         
+        # Determine if athlete has a score or is awaiting result
+        has_score = score not in ['N/A', '', None] and not pd.isna(score)
+        
         # If no score yet and we have qualification info, show thresholds
         threshold_display = ""
-        if (pd.isna(score) or score == '' or score == 'N/A') and qualification_info and "Semis" in competition_name:
+        if not has_score and qualification_info and "Semis" in competition_name:
             thresholds = []
             if 'Hold for 1st' in qualification_info:
                 thresholds.append(f"🥇 1st: {qualification_info['Hold for 1st']}")
@@ -405,17 +438,20 @@ def display_lead_results(df, competition_name):
         # Get status styling
         status_emoji = get_status_emoji(status)
         
-        if "Qualified" in str(status) or "✓✓" in str(status):
+        # Determine card class based on status and score availability
+        if not has_score:
+            card_class = "awaiting-result"
+        elif "Qualified" in str(status) or "✓✓" in str(status):
             card_class = "qualified"
         elif "Eliminated" in str(status) or "✗" in str(status):
             card_class = "eliminated"
         elif "Contention" in str(status) or "⚠" in str(status):
             card_class = "podium-position"
         else:
-            card_class = ""
+            card_class = "awaiting-result"
         
         # Show score if available, otherwise show "Awaiting Result"
-        score_display = score if score not in ['N/A', '', None] and not pd.isna(score) else "Awaiting Result"
+        score_display = score if has_score else "Awaiting Result"
         
         st.markdown(f"""
         <div class="athlete-row {card_class}">
