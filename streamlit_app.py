@@ -57,14 +57,24 @@ st.markdown("""
         border: 1px solid rgba(0, 0, 0, 0.2);
     }
     .podium-position {
-        background-color: #fff3cd;
-        border-left: 4px solid #ffc107;
-        color: #856404;
+        background-color: #d4edda;
+        border-left: 4px solid #28a745;
+        color: #155724;
     }
     .podium-position .targets {
-        background-color: rgba(255, 193, 7, 0.2);
-        color: #856404;
-        border: 1px solid #ffc107;
+        background-color: rgba(40, 167, 69, 0.2);
+        color: #155724;
+        border: 1px solid #28a745;
+    }
+    .no-podium {
+        background-color: #f8d7da;
+        border-left: 4px solid #dc3545;
+        color: #721c24;
+    }
+    .no-podium .targets {
+        background-color: rgba(220, 53, 69, 0.2);
+        color: #721c24;
+        border: 1px solid #dc3545;
     }
     .qualified {
         background-color: #d4edda;
@@ -458,6 +468,10 @@ def display_lead_results(df, competition_name):
             card_class = "qualified"
         elif "Eliminated" in str(status) or "✗" in str(status):
             card_class = "eliminated"
+        elif "Podium" in str(status) and "No Podium" not in str(status):
+            card_class = "podium-position"
+        elif "No Podium" in str(status):
+            card_class = "no-podium"
         elif "Contention" in str(status) or "⚠" in str(status):
             card_class = "podium-position"
         else:
