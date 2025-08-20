@@ -37,6 +37,14 @@ st.markdown("""
         color: #333333;
         font-weight: 500;
     }
+    .athlete-row .targets {
+        color: #ffffff;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-top: 0.25rem;
+        display: inline-block;
+    }
     .podium-position {
         background-color: #fff3cd;
         border-left: 4px solid #ffc107;
@@ -386,7 +394,7 @@ def display_lead_results(df, competition_name):
                 thresholds.append(f"⚠️ Min: {qualification_info['Min to Qualify']}")
             
             if thresholds:
-                threshold_display = f"<br><small><strong>Targets:</strong> {' | '.join(thresholds)}</small>"
+                threshold_display = f"<br><div class='targets'><strong>Targets:</strong> {' | '.join(thresholds)}</div>"
         
         # Get status styling
         status_emoji = get_status_emoji(status)
