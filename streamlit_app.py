@@ -417,10 +417,15 @@ def display_lead_results(df, competition_name):
         score = row.get('Manual Score', 'N/A')
         rank = row.get('Current Rank', 'N/A')
         status = row.get('Status', 'Unknown')
+        worst_finish = row.get('Worst Finish', 'N/A')
         
         # Clean up status text - remove unwanted characters
         if isinstance(status, str):
             status = status.replace('â', '').replace('á', '').strip()
+        
+        # Clean up name - remove unwanted characters
+        if isinstance(name, str):
+            name = name.replace('â', '').replace('á', '').strip()
         
         # Determine if athlete has a score or is awaiting result
         has_score = score not in ['N/A', '', None] and not pd.isna(score)
@@ -461,10 +466,15 @@ def display_lead_results(df, competition_name):
         # Show score if available, otherwise show "Awaiting Result"
         score_display = score if has_score else "Awaiting Result"
         
+        # Add worst finish info if athlete has a score
+        worst_finish_display = ""
+        if has_score and worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
+            worst_finish_display = f" | Worst Finish: {worst_finish}"
+        
         st.markdown(f"""
         <div class="athlete-row {card_class}">
             <strong>{status_emoji} #{rank} - {name}</strong><br>
-            <small>Score: {score_display} | Status: {status}</small>{threshold_display}
+            <small>Score: {score_display} | Status: {status}{worst_finish_display}</small>{threshold_display}
         </div>
         """, unsafe_allow_html=True)
 
