@@ -195,7 +195,7 @@ def display_boulder_results(df, competition_name):
             score_col = col
             break
     
-    # Sort by Current Position/Rank (ascending) first, then by Total Score (descending)
+    # Sort by Current Position/Rank (ascending) first
     df_sorted = df.copy()
     
     # Convert rank to numeric
@@ -214,21 +214,12 @@ def display_boulder_results(df, competition_name):
     
     # Sort by position first (ascending), then by score (descending) as tiebreaker
     try:
-        if 'Current Position/Rank' in df_sorted.columns and score_col is not None:
-            # Sort by both position and score
-            df_sorted = df_sorted.sort_values(['Current Position/Rank', score_col], 
-                                            ascending=[True, False], 
-                                            na_position='last').reset_index(drop=True)
-        elif 'Current Position/Rank' in df_sorted.columns:
-            # Sort by position only
-            df_sorted = df_sorted.sort_values('Current Position/Rank', 
-                                            ascending=True, 
-                                            na_position='last').reset_index(drop=True)
+        if 'Current Position/Rank' in df_sorted.columns:
+            # Sort by position (ascending)
+            df_sorted = df_sorted.sort_values('Current Position/Rank', ascending=True).reset_index(drop=True)
         elif score_col is not None:
-            # Sort by score only
-            df_sorted = df_sorted.sort_values(score_col, 
-                                            ascending=False, 
-                                            na_position='last').reset_index(drop=True)
+            # Fallback: Sort by score only (descending)
+            df_sorted = df_sorted.sort_values(score_col, ascending=False).reset_index(drop=True)
     except Exception as e:
         st.warning(f"Could not sort data: {e}")
         # Keep original order if sorting fails
@@ -331,7 +322,7 @@ def display_lead_results(df, competition_name):
     try:
         if 'Current Rank' in active_df.columns:
             active_df['Current Rank'] = pd.to_numeric(active_df['Current Rank'], errors='coerce')
-            active_df = active_df.sort_values('Current Rank', ascending=True, na_position='last').reset_index(drop=True)
+            active_df = active_df.sort_values('Current Rank', ascending=True).reset_index(drop=True)
     except Exception as e:
         st.warning(f"Could not sort by rank: {e}")
     
