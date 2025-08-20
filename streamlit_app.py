@@ -87,7 +87,7 @@ SHEETS_URLS = {
     "Female Lead Final": "https://docs.google.com/spreadsheets/d/1MwVp1mBUoFrzRSIIu4UdMcFlXpxHAi_R7ztp1E4Vgx0/export?format=csv&gid=528108640"
 }
 
-@st.cache_data(ttl=1)  # Cache data for 1 second
+@st.cache_data(ttl=2)  # Cache data for 2 seconds
 def load_sheet_data(url):
     """Load data from Google Sheets CSV export URL"""
     try:
@@ -382,8 +382,8 @@ def main():
         else:
             st.dataframe(df, use_container_width=True, hide_index=True)
     
-    # Auto-refresh functionality - refresh every 1 second
-    time.sleep(1)
+    # Auto-refresh functionality - refresh every 2 seconds
+    time.sleep(2)
     st.rerun()
 
 if __name__ == "__main__":
