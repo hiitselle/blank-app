@@ -302,7 +302,13 @@ def display_lead_results(df, competition_name):
             df['Name'].notna() & 
             (df['Name'] != '') & 
             (~df['Name'].astype(str).str.isdigit()) &
-            (~df['Name'].astype(str).str.contains(r'^\s*
+            (~df['Name'].astype(str).str.contains(r'^\s*$', na=True)) &
+            (~df['Name'].astype(str).str.contains('Hold for', na=False)) &
+            (~df['Name'].astype(str).str.contains('Min to', na=False))
+        ]
+    except Exception as e:
+        st.error(f"Error filtering data: {e}")
+        active_df = df[df['Name'].notna() & (df['Name'] != '')]
     
     # Key metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -401,186 +407,6 @@ def display_lead_results(df, competition_name):
         <div class="athlete-row {card_class}">
             <strong>{status_emoji} #{rank} - {name}</strong><br>
             <small>Score: {score_display} | Status: {status}{threshold_display}</small>
-        </div>
-        """, unsafe_allow_html=True)
-
-def main():
-    # Header
-    st.markdown("""
-    <div class="main-header">
-        <h1>🧗‍♂️ IFSC 2025 World Championships</h1>
-        <h3>Live Competition Results</h3>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Sidebar
-    st.sidebar.title("🏆 Competition Selection")
-    
-    # Manual refresh
-    if st.sidebar.button("🔄 Refresh Now", type="primary"):
-        st.cache_data.clear()
-        st.rerun()
-    
-    # Competition type filter
-    st.sidebar.markdown("### 🎯 Filter by:")
-    competition_type = st.sidebar.selectbox(
-        "Competition Type",
-        ["All", "Boulder", "Lead"]
-    )
-    
-    gender_filter = st.sidebar.selectbox(
-        "Gender",
-        ["All", "Male", "Female"]
-    )
-    
-    round_filter = st.sidebar.selectbox(
-        "Round",
-        ["All", "Semis", "Final"]
-    )
-    
-    # Filter competitions based on selection
-    filtered_competitions = {}
-    for name, url in SHEETS_URLS.items():
-        include = True
-        
-        if competition_type != "All":
-            if competition_type.lower() not in name.lower():
-                include = False
-        
-        if gender_filter != "All":
-            if gender_filter.lower() not in name.lower():
-                include = False
-                
-        if round_filter != "All":
-            if round_filter.lower() not in name.lower():
-                include = False
-        
-        if include:
-            filtered_competitions[name] = url
-    
-    # Main content
-    if len(filtered_competitions) == 0:
-        st.warning("No competitions match your filters.")
-        return
-    
-    # Quick overview cards
-    st.markdown("### 🚀 Quick Overview")
-    cols = st.columns(min(len(filtered_competitions), 4))
-    
-    for i, (comp_name, _) in enumerate(list(filtered_competitions.items())[:4]):
-        with cols[i % 4]:
-            df = load_sheet_data(filtered_competitions[comp_name])
-            if not df.empty:
-                athlete_count = len(df[df.iloc[:, 0].notna() & (df.iloc[:, 0] != '')])
-                st.metric(
-                    comp_name.replace(" ", "\n"),
-                    f"{athlete_count} athletes",
-                    delta=None
-                )
-    
-    # Detailed results
-    st.markdown("### 📊 Detailed Results")
-    
-    # Tabs for each competition
-    if len(filtered_competitions) > 1:
-        tabs = st.tabs(list(filtered_competitions.keys()))
-        
-        for i, (comp_name, url) in enumerate(filtered_competitions.items()):
-            with tabs[i]:
-                df = load_sheet_data(url)
-                current_time = time.strftime("%H:%M:%S")
-                st.caption(f"Last updated: {current_time}")
-                
-                if "Boulder" in comp_name:
-                    display_boulder_results(df, comp_name)
-                elif "Lead" in comp_name:
-                    display_lead_results(df, comp_name)
-                else:
-                    st.dataframe(df, use_container_width=True, hide_index=True)
-    else:
-        # Single competition view
-        comp_name, url = list(filtered_competitions.items())[0]
-        df = load_sheet_data(url)
-        current_time = time.strftime("%H:%M:%S")
-        st.caption(f"Last updated: {current_time}")
-        
-        if "Boulder" in comp_name:
-            display_boulder_results(df, comp_name)
-        elif "Lead" in comp_name:
-            display_lead_results(df, comp_name)
-        else:
-            st.dataframe(df, use_container_width=True, hide_index=True)
-    
-    # Auto-refresh functionality - refresh every 2 seconds
-    time.sleep(2)
-    st.rerun()
-
-if __name__ == "__main__":
-    main(), na=True)) &
-            (~df['Name'].astype(str).str.contains('Hold for', na=False)) &
-            (~df['Name'].astype(str).str.contains('Min to', na=False))
-        ]
-    except Exception as e:
-        st.error(f"Error filtering data: {e}")
-        active_df = df[df['Name'].notna() & (df['Name'] != '')]
-    
-    # Key metrics
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.markdown(f'<div class="metric-card"><h4>👥 Athletes</h4><h2>{len(active_df)}</h2></div>', unsafe_allow_html=True)
-    with col2:
-        completed = len(active_df[active_df['Manual Score'].notna() & (active_df['Manual Score'] != '')])
-        st.markdown(f'<div class="metric-card"><h4>✅ Completed</h4><h2>{completed}</h2></div>', unsafe_allow_html=True)
-    with col3:
-        if 'Manual Score' in active_df.columns:
-            scores = pd.to_numeric(active_df['Manual Score'], errors='coerce')
-            avg_score = scores.mean()
-            if not pd.isna(avg_score):
-                st.markdown(f'<div class="metric-card"><h4>📊 Avg Score</h4><h2>{avg_score:.1f}</h2></div>', unsafe_allow_html=True)
-            else:
-                st.markdown('<div class="metric-card"><h4>📊 Avg Score</h4><h2>N/A</h2></div>', unsafe_allow_html=True)
-    with col4:
-        if 'Current Rank' in active_df.columns:
-            try:
-                leader_idx = pd.to_numeric(active_df['Current Rank'], errors='coerce') == 1
-                leader = active_df.loc[leader_idx, 'Name'].iloc[0] if leader_idx.any() else "TBD"
-                st.markdown(f'<div class="metric-card"><h4>🥇 Leader</h4><h2>{leader}</h2></div>', unsafe_allow_html=True)
-            except:
-                st.markdown('<div class="metric-card"><h4>🥇 Leader</h4><h2>TBD</h2></div>', unsafe_allow_html=True)
-    
-    st.markdown("#### 📋 Current Standings")
-    
-    # Sort by Current Rank if available
-    try:
-        if 'Current Rank' in active_df.columns:
-            active_df['Current Rank'] = pd.to_numeric(active_df['Current Rank'], errors='coerce')
-            active_df = active_df.sort_values('Current Rank', ascending=True).reset_index(drop=True)
-    except Exception as e:
-        st.warning(f"Could not sort by rank: {e}")
-    
-    # Display results
-    for idx, row in active_df.iterrows():
-        name = row.get('Name', 'Unknown')
-        score = row.get('Manual Score', 'N/A')
-        rank = row.get('Current Rank', 'N/A')
-        status = row.get('Status', 'Unknown')
-        
-        # Get status styling
-        status_emoji = get_status_emoji(status)
-        
-        if "Qualified" in str(status) or "✓✓" in str(status):
-            card_class = "qualified"
-        elif "Eliminated" in str(status) or "✗" in str(status):
-            card_class = "eliminated"
-        elif "Contention" in str(status) or "⚠" in str(status):
-            card_class = "podium-position"
-        else:
-            card_class = ""
-        
-        st.markdown(f"""
-        <div class="athlete-row {card_class}">
-            <strong>{status_emoji} #{rank} - {name}</strong><br>
-            <small>Score: {score} | Status: {status}</small>
         </div>
         """, unsafe_allow_html=True)
 
