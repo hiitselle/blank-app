@@ -375,18 +375,18 @@ def display_lead_results(df, competition_name):
         if (pd.isna(score) or score == '' or score == 'N/A') and qualification_info and "Semis" in competition_name:
             thresholds = []
             if 'Hold for 1st' in qualification_info:
-                thresholds.append(f"1st: {qualification_info['Hold for 1st']}")
+                thresholds.append(f"🥇 1st: {qualification_info['Hold for 1st']}")
             if 'Hold for 2nd' in qualification_info:
-                thresholds.append(f"2nd: {qualification_info['Hold for 2nd']}")
+                thresholds.append(f"🥈 2nd: {qualification_info['Hold for 2nd']}")
             if 'Hold for 3rd' in qualification_info:
-                thresholds.append(f"3rd: {qualification_info['Hold for 3rd']}")
+                thresholds.append(f"🥉 3rd: {qualification_info['Hold for 3rd']}")
             if 'Hold to Qualify' in qualification_info:
-                thresholds.append(f"Qualify: {qualification_info['Hold to Qualify']}")
+                thresholds.append(f"✅ Qualify: {qualification_info['Hold to Qualify']}")
             if 'Min to Qualify' in qualification_info:
-                thresholds.append(f"Min: {qualification_info['Min to Qualify']}")
+                thresholds.append(f"⚠️ Min: {qualification_info['Min to Qualify']}")
             
             if thresholds:
-                threshold_display = f" | Targets: {' | '.join(thresholds[:3])}"  # Show first 3 to avoid clutter
+                threshold_display = f"<br><small><strong>Targets:</strong> {' | '.join(thresholds)}</small>"
         
         # Get status styling
         status_emoji = get_status_emoji(status)
@@ -406,7 +406,7 @@ def display_lead_results(df, competition_name):
         st.markdown(f"""
         <div class="athlete-row {card_class}">
             <strong>{status_emoji} #{rank} - {name}</strong><br>
-            <small>Score: {score_display} | Status: {status}{threshold_display}</small>
+            <small>Score: {score_display} | Status: {status}</small>{threshold_display}
         </div>
         """, unsafe_allow_html=True)
 
