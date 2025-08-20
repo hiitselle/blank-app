@@ -278,6 +278,10 @@ def display_boulder_results(df, competition_name):
         athlete = row.get('Athlete Name', 'Unknown')
         total_score = row.get(score_col, 'N/A') if score_col else 'N/A'
         
+        # Clean up athlete name - remove unwanted characters
+        if isinstance(athlete, str):
+            athlete = athlete.replace('â', '').replace('á', '').strip()
+        
         # Color coding based on position
         try:
             rank_num = pd.to_numeric(rank, errors='coerce')
@@ -413,6 +417,10 @@ def display_lead_results(df, competition_name):
         score = row.get('Manual Score', 'N/A')
         rank = row.get('Current Rank', 'N/A')
         status = row.get('Status', 'Unknown')
+        
+        # Clean up status text - remove unwanted characters
+        if isinstance(status, str):
+            status = status.replace('â', '').replace('á', '').strip()
         
         # Determine if athlete has a score or is awaiting result
         has_score = score not in ['N/A', '', None] and not pd.isna(score)
