@@ -195,25 +195,44 @@ def display_boulder_results(df, competition_name):
             score_col = col
             break
     
-    # Sort by Total Score in descending order if available
+    # Sort by Current Position/Rank (ascending) first, then by Total Score (descending)
+    df_sorted = df.copy()
+    
+    # Convert rank to numeric
+    if 'Current Position/Rank' in df.columns:
+        try:
+            df_sorted['Current Position/Rank'] = pd.to_numeric(df_sorted['Current Position/Rank'], errors='coerce')
+        except:
+            pass
+    
+    # Convert score to numeric if available
     if score_col is not None:
         try:
-            # Convert score column to numeric, coercing errors to NaN
-            df[score_col] = pd.to_numeric(df[score_col], errors='coerce')
-            df_sorted = df.sort_values(score_col, ascending=False, na_last=True).reset_index(drop=True)
-        except Exception as e:
-            st.warning(f"Could not sort by score: {e}")
-            df_sorted = df.copy()
-    else:
-        # Try to sort by rank if available
-        if 'Current Position/Rank' in df.columns:
-            try:
-                df['Current Position/Rank'] = pd.to_numeric(df['Current Position/Rank'], errors='coerce')
-                df_sorted = df.sort_values('Current Position/Rank', ascending=True, na_last=True).reset_index(drop=True)
-            except:
-                df_sorted = df.copy()
-        else:
-            df_sorted = df.copy()
+            df_sorted[score_col] = pd.to_numeric(df_sorted[score_col], errors='coerce')
+        except:
+            pass
+    
+    # Sort by position first (ascending), then by score (descending) as tiebreaker
+    try:
+        if 'Current Position/Rank' in df_sorted.columns and score_col is not None:
+            # Sort by both position and score
+            df_sorted = df_sorted.sort_values(['Current Position/Rank', score_col], 
+                                            ascending=[True, False], 
+                                            na_position='last').reset_index(drop=True)
+        elif 'Current Position/Rank' in df_sorted.columns:
+            # Sort by position only
+            df_sorted = df_sorted.sort_values('Current Position/Rank', 
+                                            ascending=True, 
+                                            na_position='last').reset_index(drop=True)
+        elif score_col is not None:
+            # Sort by score only
+            df_sorted = df_sorted.sort_values(score_col, 
+                                            ascending=False, 
+                                            na_position='last').reset_index(drop=True)
+    except Exception as e:
+        st.warning(f"Could not sort data: {e}")
+        # Keep original order if sorting fails
+        df_sorted = df.copy()
     
     # Display results table with enhanced formatting
     for idx, row in df_sorted.iterrows():
@@ -307,6 +326,14 @@ def display_lead_results(df, competition_name):
                 st.markdown('<div class="metric-card"><h4>🥇 Leader</h4><h2>TBD</h2></div>', unsafe_allow_html=True)
     
     st.markdown("#### 📋 Current Standings")
+    
+    # Sort by Current Rank if available
+    try:
+        if 'Current Rank' in active_df.columns:
+            active_df['Current Rank'] = pd.to_numeric(active_df['Current Rank'], errors='coerce')
+            active_df = active_df.sort_values('Current Rank', ascending=True, na_position='last').reset_index(drop=True)
+    except Exception as e:
+        st.warning(f"Could not sort by rank: {e}")
     
     # Display results
     for idx, row in active_df.iterrows():
