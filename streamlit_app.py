@@ -101,6 +101,9 @@ def load_sheet_data(url):
         # Clean up the dataframe
         df = df.dropna(how='all')  # Remove completely empty rows
         
+        # Clean column names - strip whitespace
+        df.columns = df.columns.str.strip()
+        
         # Remove unnamed columns more safely
         if len(df.columns) > 0:
             unnamed_cols = [col for col in df.columns if str(col).startswith('Unnamed')]
@@ -157,21 +160,60 @@ def display_boulder_results(df, competition_name):
         completed_boulders = df.iloc[:, 2:6].notna().sum().sum() if len(df.columns) > 6 else 0
         st.markdown(f'<div class="metric-card"><h4>🧗‍♂️ Completed Problems</h4><h2>{completed_boulders}</h2></div>', unsafe_allow_html=True)
     with col3:
-        if 'Total Score ' in df.columns:
-            avg_score = df['Total Score '].mean()
-            st.markdown(f'<div class="metric-card"><h4>📊 Avg Score</h4><h2>{avg_score:.1f}</h2></div>', unsafe_allow_html=True)
+        # Look for Total Score column (with or without trailing space)
+        score_col = None
+        for col in df.columns:
+            if 'Total Score' in str(col):
+                score_col = col
+                break
+        
+        if score_col is not None and score_col in df.columns:
+            # Convert to numeric, handling errors
+            numeric_scores = pd.to_numeric(df[score_col], errors='coerce')
+            avg_score = numeric_scores.mean()
+            if not pd.isna(avg_score):
+                st.markdown(f'<div class="metric-card"><h4>📊 Avg Score</h4><h2>{avg_score:.1f}</h2></div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="metric-card"><h4>📊 Avg Score</h4><h2>N/A</h2></div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="metric-card"><h4>📊 Avg Score</h4><h2>N/A</h2></div>', unsafe_allow_html=True)
     with col4:
         if 'Current Position/Rank' in df.columns:
-            leader = df.loc[df['Current Position/Rank'] == 1, 'Athlete Name'].iloc[0] if len(df[df['Current Position/Rank'] == 1]) > 0 else "TBD"
-            st.markdown(f'<div class="metric-card"><h4>🥇 Leader</h4><h2>{leader}</h2></div>', unsafe_allow_html=True)
+            try:
+                leader_mask = pd.to_numeric(df['Current Position/Rank'], errors='coerce') == 1
+                leader = df.loc[leader_mask, 'Athlete Name'].iloc[0] if leader_mask.any() else "TBD"
+                st.markdown(f'<div class="metric-card"><h4>🥇 Leader</h4><h2>{leader}</h2></div>', unsafe_allow_html=True)
+            except:
+                st.markdown('<div class="metric-card"><h4>🥇 Leader</h4><h2>TBD</h2></div>', unsafe_allow_html=True)
     
     st.markdown("#### 📋 Current Standings")
     
-    # Sort by Total Score in descending order
-    if 'Total Score ' in df.columns:
-        df_sorted = df.sort_values('Total Score ', ascending=False, na_last=True).reset_index(drop=True)
+    # Find the total score column
+    score_col = None
+    for col in df.columns:
+        if 'Total Score' in str(col):
+            score_col = col
+            break
+    
+    # Sort by Total Score in descending order if available
+    if score_col is not None:
+        try:
+            # Convert score column to numeric, coercing errors to NaN
+            df[score_col] = pd.to_numeric(df[score_col], errors='coerce')
+            df_sorted = df.sort_values(score_col, ascending=False, na_last=True).reset_index(drop=True)
+        except Exception as e:
+            st.warning(f"Could not sort by score: {e}")
+            df_sorted = df.copy()
     else:
-        df_sorted = df.copy()
+        # Try to sort by rank if available
+        if 'Current Position/Rank' in df.columns:
+            try:
+                df['Current Position/Rank'] = pd.to_numeric(df['Current Position/Rank'], errors='coerce')
+                df_sorted = df.sort_values('Current Position/Rank', ascending=True, na_last=True).reset_index(drop=True)
+            except:
+                df_sorted = df.copy()
+        else:
+            df_sorted = df.copy()
     
     # Display results table with enhanced formatting
     for idx, row in df_sorted.iterrows():
@@ -180,18 +222,23 @@ def display_boulder_results(df, competition_name):
             
         rank = row.get('Current Position/Rank', 'N/A')
         athlete = row.get('Athlete Name', 'Unknown')
-        total_score = row.get('Total Score ', 'N/A')
+        total_score = row.get(score_col, 'N/A') if score_col else 'N/A'
         
         # Color coding based on position
-        if isinstance(rank, (int, float)) and rank <= 3:
-            card_class = "podium-position"
-            position_emoji = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉"
-        elif isinstance(rank, (int, float)) and rank <= 8:
-            card_class = "qualified"
-            position_emoji = "✅"
-        else:
-            card_class = "eliminated"
-            position_emoji = "❌"
+        try:
+            rank_num = pd.to_numeric(rank, errors='coerce')
+            if not pd.isna(rank_num) and rank_num <= 3:
+                card_class = "podium-position"
+                position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
+            elif not pd.isna(rank_num) and rank_num <= 8:
+                card_class = "qualified"
+                position_emoji = "✅"
+            else:
+                card_class = "eliminated"
+                position_emoji = "❌"
+        except:
+            card_class = ""
+            position_emoji = "❓"
         
         # Boulder scores
         boulder_scores = []
@@ -201,7 +248,7 @@ def display_boulder_results(df, competition_name):
                 score = row.get(col_name, '-')
                 boulder_scores.append(f"B{i}: {score}")
         
-        boulder_display = " | ".join(boulder_scores)
+        boulder_display = " | ".join(boulder_scores) if boulder_scores else "No boulder data"
         
         st.markdown(f"""
         <div class="athlete-row {card_class}">
@@ -246,12 +293,18 @@ def display_lead_results(df, competition_name):
         if 'Manual Score' in active_df.columns:
             scores = pd.to_numeric(active_df['Manual Score'], errors='coerce')
             avg_score = scores.mean()
-            st.markdown(f'<div class="metric-card"><h4>📊 Avg Score</h4><h2>{avg_score:.1f}</h2></div>', unsafe_allow_html=True)
+            if not pd.isna(avg_score):
+                st.markdown(f'<div class="metric-card"><h4>📊 Avg Score</h4><h2>{avg_score:.1f}</h2></div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="metric-card"><h4>📊 Avg Score</h4><h2>N/A</h2></div>', unsafe_allow_html=True)
     with col4:
         if 'Current Rank' in active_df.columns:
-            leader_idx = active_df['Current Rank'] == 1
-            leader = active_df.loc[leader_idx, 'Name'].iloc[0] if len(active_df[leader_idx]) > 0 else "TBD"
-            st.markdown(f'<div class="metric-card"><h4>🥇 Leader</h4><h2>{leader}</h2></div>', unsafe_allow_html=True)
+            try:
+                leader_idx = pd.to_numeric(active_df['Current Rank'], errors='coerce') == 1
+                leader = active_df.loc[leader_idx, 'Name'].iloc[0] if leader_idx.any() else "TBD"
+                st.markdown(f'<div class="metric-card"><h4>🥇 Leader</h4><h2>{leader}</h2></div>', unsafe_allow_html=True)
+            except:
+                st.markdown('<div class="metric-card"><h4>🥇 Leader</h4><h2>TBD</h2></div>', unsafe_allow_html=True)
     
     st.markdown("#### 📋 Current Standings")
     
