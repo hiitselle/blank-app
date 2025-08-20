@@ -34,18 +34,23 @@ st.markdown("""
         padding: 0.5rem;
         margin: 0.2rem 0;
         border-radius: 5px;
+        color: #333333;
+        font-weight: 500;
     }
     .podium-position {
         background-color: #fff3cd;
         border-left: 4px solid #ffc107;
+        color: #856404;
     }
     .qualified {
         background-color: #d1edff;
         border-left: 4px solid #0066cc;
+        color: #004085;
     }
     .eliminated {
         background-color: #f8d7da;
         border-left: 4px solid #dc3545;
+        color: #721c24;
     }
     .metric-card {
         background: white;
@@ -69,7 +74,7 @@ SHEETS_URLS = {
     "Female Lead Final": "https://docs.google.com/spreadsheets/d/1MwVp1mBUoFrzRSIIu4UdMcFlXpxHAi_R7ztp1E4Vgx0/export?format=csv&gid=528108640"
 }
 
-@st.cache_data(ttl=30)  # Cache data for 30 seconds
+@st.cache_data(ttl=1)  # Cache data for 1 second
 def load_sheet_data(url):
     """Load data from Google Sheets CSV export URL"""
     try:
@@ -269,13 +274,6 @@ def main():
     # Sidebar
     st.sidebar.title("🏆 Competition Selection")
     
-    # Auto-refresh toggle
-    auto_refresh = st.sidebar.checkbox("🔄 Auto-refresh (30s)", value=True)
-    refresh_interval = st.sidebar.slider("Refresh Interval (seconds)", 10, 120, 30)
-    
-    if auto_refresh:
-        st.sidebar.success(f"Auto-refreshing every {refresh_interval}s")
-    
     # Manual refresh
     if st.sidebar.button("🔄 Refresh Now", type="primary"):
         st.cache_data.clear()
@@ -371,10 +369,9 @@ def main():
         else:
             st.dataframe(df, use_container_width=True, hide_index=True)
     
-    # Auto-refresh functionality
-    if auto_refresh:
-        time.sleep(refresh_interval)
-        st.rerun()
+    # Auto-refresh functionality - refresh every 1 second
+    time.sleep(1)
+    st.rerun()
 
 if __name__ == "__main__":
     main()
