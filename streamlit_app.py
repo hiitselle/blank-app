@@ -167,8 +167,14 @@ def display_boulder_results(df, competition_name):
     
     st.markdown("#### 📋 Current Standings")
     
+    # Sort by Total Score in descending order
+    if 'Total Score ' in df.columns:
+        df_sorted = df.sort_values('Total Score ', ascending=False, na_last=True).reset_index(drop=True)
+    else:
+        df_sorted = df.copy()
+    
     # Display results table with enhanced formatting
-    for idx, row in df.iterrows():
+    for idx, row in df_sorted.iterrows():
         if pd.isna(row.get('Athlete Name')) or row.get('Athlete Name') == '':
             continue
             
