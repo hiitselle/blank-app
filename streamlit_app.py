@@ -253,7 +253,7 @@ SHEETS_URLS = {
 # Configuration
 CONFIG = {
     'CACHE_TTL': 30,
-    'AUTO_REFRESH_INTERVAL': 30,
+    'AUTO_REFRESH_INTERVAL': 1,
     'MAX_RETRIES': 3,
     'REQUEST_TIMEOUT': 15,
 }
@@ -275,8 +275,8 @@ def clean_text(text):
     
     try:
         # Remove common encoding artifacts
-        cleaned = text.replace('Ã¢', '').replace('Ã¡', '').replace('â€™', "'")
-        cleaned = cleaned.replace('â€œ', '"').replace('â€', '"').replace('â€"', '-')
+        cleaned = text.replace('ÃƒÂ¢', '').replace('ÃƒÂ¡', '').replace('Ã¢â‚¬â„¢', "'")
+        cleaned = cleaned.replace('Ã¢â‚¬Å"', '"').replace('Ã¢â‚¬', '"').replace('Ã¢â‚¬"', '-')
         return cleaned.strip()
     except Exception as e:
         logger.warning(f"Error cleaning text '{text}': {e}")
@@ -298,7 +298,7 @@ def validate_dataframe(df, expected_columns):
 def get_competition_status(df, competition_name):
     """Determine competition status based on data"""
     if df.empty:
-        return "upcoming", "🔄"
+        return "upcoming", "📄"
     
     # Check if there are any scores/results
     if "Boulder" in competition_name:
@@ -575,6 +575,33 @@ def display_boulder_results(df, competition_name):
         
         boulder_display = " | ".join(boulder_scores) if boulder_scores else "No boulder data available"
         
+        # Check if athlete has completed all 4 boulders and add worst finish if available
+        worst_finish_display = ""
+        if completed_boulders == 4:  # Works for both Semis AND Finals
+            # Look for worst finish information - different column names for different events
+            worst_finish_col = None
+            
+            # For Boulder events (both Semis and Finals), look for "Worst Possible Finish"
+            if "Boulder" in competition_name and 'Worst Possible Finish' in df.columns:
+                worst_finish_col = 'Worst Possible Finish'
+            # For Lead events, look for "Worst Finish"
+            elif "Lead" in competition_name and 'Worst Finish' in df.columns:
+                worst_finish_col = 'Worst Finish'
+            else:
+                # Try other variations as fallback
+                for col in df.columns:
+                    col_str = str(col).strip().lower()
+                    if ('worst' in col_str and 'possible' in col_str and 'finish' in col_str) or ('worst' in col_str and 'finish' in col_str):
+                        worst_finish_col = col
+                        break
+            
+            if worst_finish_col and worst_finish_col in df.columns:
+                worst_finish = row.get(worst_finish_col, 'N/A')
+                if worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
+                    worst_finish_clean = clean_text(str(worst_finish))
+                    if worst_finish_clean and worst_finish_clean != '-':
+                        worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
+
         # Color coding based on completion and competition type
         if "Final" in competition_name:
             # For Finals, use podium-based coloring (top 3)
@@ -612,33 +639,6 @@ def display_boulder_results(df, competition_name):
                 # If not all 4 boulders completed, don't apply special coloring
                 try:
                     rank_num = safe_numeric_conversion(rank)
-                    if rank_num > 0 and rank_num <= 3:
-                        card_class = "podium-position"
-                        position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
-                    elif rank_num > 0:
-                        card_class = "awaiting-result"
-                        position_emoji = "⏳"
-                    else:
-                        card_class = "awaiting-result"
-                        position_emoji = "⏳"
-                except:
-                    card_class = "awaiting-result"
-                    position_emoji = "⏳"
-        elif "Semis" in competition_name:
-            # For Semis, use qualification-based coloring (top 8)
-            if completed_boulders == 4:
-                # Only apply coloring if all 4 boulders are completed
-                try:
-                    rank_num = safe_numeric_conversion(rank)
-                    
-                    # Get worst possible finish number
-                    worst_finish_num = None
-                    if worst_finish_display:
-                        import re
-                        worst_finish_match = re.search(r'Worst Finish: (\d+)', worst_finish_display)
-                        if worst_finish_match:
-                            worst_finish_num = int(worst_finish_match.group(1))
-                    
                     if rank_num > 0 and rank_num <= 3:
                         card_class = "podium-position"
                         position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
@@ -729,33 +729,6 @@ def display_boulder_results(df, competition_name):
                 if strategies:
                     comp_type = "Final" if "Final" in competition_name else "Semi"
                     strategy_display = f"<br><div class='targets'><strong>{comp_type} Boulder Strategy:</strong> {' | '.join(strategies)}</div>"
-        
-        # Check if athlete has completed all 4 boulders and add worst finish if available
-        worst_finish_display = ""
-        if completed_boulders == 4:  # Works for both Semis AND Finals
-            # Look for worst finish information - different column names for different events
-            worst_finish_col = None
-            
-            # For Boulder events (both Semis and Finals), look for "Worst Possible Finish"
-            if "Boulder" in competition_name and 'Worst Possible Finish' in df.columns:
-                worst_finish_col = 'Worst Possible Finish'
-            # For Lead events, look for "Worst Finish"
-            elif "Lead" in competition_name and 'Worst Finish' in df.columns:
-                worst_finish_col = 'Worst Finish'
-            else:
-                # Try other variations as fallback
-                for col in df.columns:
-                    col_str = str(col).strip().lower()
-                    if ('worst' in col_str and 'possible' in col_str and 'finish' in col_str) or ('worst' in col_str and 'finish' in col_str):
-                        worst_finish_col = col
-                        break
-            
-            if worst_finish_col and worst_finish_col in df.columns:
-                worst_finish = row.get(worst_finish_col, 'N/A')
-                if worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
-                    worst_finish_clean = clean_text(str(worst_finish))
-                    if worst_finish_clean and worst_finish_clean != '-':
-                        worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
         
         # Create the display text
         if completed_boulders == 4:
@@ -953,7 +926,7 @@ def main():
     if 'last_refresh' not in st.session_state:
         st.session_state.last_refresh = datetime.now()
     if 'auto_refresh_enabled' not in st.session_state:
-        st.session_state.auto_refresh_enabled = False
+        st.session_state.auto_refresh_enabled = True
     
     # Header with enhanced styling
     st.markdown("""
@@ -971,7 +944,7 @@ def main():
     auto_refresh = st.sidebar.checkbox(
         "Enable Auto-Refresh", 
         value=st.session_state.auto_refresh_enabled,
-        help=f"Automatically refresh data every {CONFIG['AUTO_REFRESH_INTERVAL']} seconds"
+        help=f"Automatically refresh data every {CONFIG['AUTO_REFRESH_INTERVAL']} second"
     )
     st.session_state.auto_refresh_enabled = auto_refresh
     
@@ -1112,7 +1085,7 @@ def main():
     with col2:
         st.markdown("**📊 Real-time Results Dashboard**")
     with col3:
-        st.markdown("**🔄 Auto-updating every 30 seconds**")
+        st.markdown("**🔄 Auto-updating every second**")
     
     # Auto-refresh logic (improved)
     if st.session_state.auto_refresh_enabled:
@@ -1134,4 +1107,31 @@ if __name__ == "__main__":
             st.code(f"Error: {e}")
             st.code(f"Time: {datetime.now()}")
             import traceback
-            st.code(traceback.format_exc())
+            st.code(traceback.format_exc())_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
+                    elif rank_num > 0:
+                        card_class = "awaiting-result"
+                        position_emoji = "⏳"
+                    else:
+                        card_class = "awaiting-result"
+                        position_emoji = "⏳"
+                except:
+                    card_class = "awaiting-result"
+                    position_emoji = "⏳"
+        elif "Semis" in competition_name:
+            # For Semis, use qualification-based coloring (top 8)
+            if completed_boulders == 4:
+                # Only apply coloring if all 4 boulders are completed
+                try:
+                    rank_num = safe_numeric_conversion(rank)
+                    
+                    # Get worst possible finish number
+                    worst_finish_num = None
+                    if worst_finish_display:
+                        import re
+                        worst_finish_match = re.search(r'Worst Finish: (\d+)', worst_finish_display)
+                        if worst_finish_match:
+                            worst_finish_num = int(worst_finish_match.group(1))
+                    
+                    if rank_num > 0 and rank_num <= 3:
+                        card_class = "podium-position"
+                        position
