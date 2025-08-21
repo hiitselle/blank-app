@@ -576,43 +576,69 @@ def display_boulder_results(df, competition_name):
         boulder_display = " | ".join(boulder_scores) if boulder_scores else "No boulder data available"
         
         # Color coding based on completion and competition type
-        if "Final" in competition_name and completed_boulders == 4:
-            # For Finals with all 4 boulders completed, use status-based coloring
-            status_col_name = None
-            for col in df.columns:
-                if 'Status' in str(col):
-                    status_col_name = col
-                    break
-            
-            athlete_status = ""
-            if status_col_name and status_col_name in df.columns:
-                athlete_status = clean_text(str(row.get(status_col_name, '')))
-            
-            # Finals status-based coloring
-            if "Podium" in athlete_status and "Contention" not in athlete_status and "No Podium" not in athlete_status:
-                card_class = "podium-position"  # Green
-                position_emoji = "🏆"
-            elif "Podium Contention" in athlete_status or "Contention" in athlete_status:
-                card_class = "podium-contention"  # Yellow
-                position_emoji = "⚠️"
-            elif "No Podium" in athlete_status:
-                card_class = "no-podium"  # Red
-                position_emoji = "💔"
-            else:
-                # Fallback to rank-based if no clear status
-                try:
-                    rank_num = safe_numeric_conversion(rank)
-                    if rank_num > 0 and rank_num <= 3:
-                        card_class = "podium-position"
-                        position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
-                    else:
-                        card_class = "awaiting-result"
-                        position_emoji = "📊"
-                except:
+        if "Final" in competition_name:
+            # For Finals, use podium-based coloring (top 3)
+            try:
+                rank_num = safe_numeric_conversion(rank)
+                
+                # Check worst finish to determine if still has podium chance
+                worst_finish_num = None
+                if completed_boulders == 4 and worst_finish_display:
+                    # Extract number from worst finish display
+                    import re
+                    worst_finish_match = re.search(r'Worst Finish: (\d+)', worst_finish_display)
+                    if worst_finish_match:
+                        worst_finish_num = int(worst_finish_match.group(1))
+                
+                if rank_num > 0 and rank_num <= 3:
+                    card_class = "podium-position"  # Green - on podium
+                    position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
+                elif worst_finish_num and worst_finish_num <= 3:
+                    card_class = "podium-contention"  # Yellow - still has chance for podium
+                    position_emoji = "⚠️"
+                elif rank_num > 3:
+                    card_class = "no-podium"  # Red - no podium chance
+                    position_emoji = "💔"
+                else:
                     card_class = "awaiting-result"
-                    position_emoji = "📊"
+                    position_emoji = "⏳"
+            except:
+                card_class = "awaiting-result"
+                position_emoji = "⏳"
+        elif "Semis" in competition_name:
+            # For Semis, use qualification-based coloring (top 8)
+            try:
+                rank_num = safe_numeric_conversion(rank)
+                
+                # Check worst finish to determine if still qualifying chance
+                worst_finish_num = None
+                if completed_boulders == 4 and worst_finish_display:
+                    # Extract number from worst finish display
+                    import re
+                    worst_finish_match = re.search(r'Worst Finish: (\d+)', worst_finish_display)
+                    if worst_finish_match:
+                        worst_finish_num = int(worst_finish_match.group(1))
+                
+                if rank_num > 0 and rank_num <= 3:
+                    card_class = "podium-position"
+                    position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
+                elif rank_num > 0 and rank_num <= 8:
+                    card_class = "qualified"  # Green - qualified
+                    position_emoji = "✅"
+                elif worst_finish_num and worst_finish_num <= 8:
+                    card_class = "podium-contention"  # Yellow - still has chance to qualify
+                    position_emoji = "⚠️"
+                elif rank_num > 8:
+                    card_class = "eliminated"  # Red - eliminated from qualifying
+                    position_emoji = "❌"
+                else:
+                    card_class = "awaiting-result"
+                    position_emoji = "⏳"
+            except:
+                card_class = "awaiting-result"
+                position_emoji = "⏳"
         else:
-            # For Semis or incomplete Finals, use rank-based coloring
+            # For other competitions, use standard rank-based coloring
             try:
                 rank_num = safe_numeric_conversion(rank)
                 if rank_num > 0 and rank_num <= 3:
