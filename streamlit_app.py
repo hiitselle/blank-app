@@ -445,11 +445,15 @@ def clean_text(text):
     if not isinstance(text, str):
         return str(text) if text is not None else ""
     
-    # Remove common encoding artifacts
-    cleaned = text.replace('Ã¢', '').replace('Ã¡', '').replace('â€™', "'")
-    cleaned = cleaned.replace('â€œ', '"').replace('â€', '"').replace('â€"', '-')
-    
-    return cleaned.strip()
+    try:
+        # Remove common encoding artifacts
+        cleaned = text.replace('Ã¢', '').replace('Ã¡', '').replace('â€™', "'")
+        cleaned = cleaned.replace('â€œ', '"').replace('â€', '"').replace('â€"', '-')
+        
+        return cleaned.strip()
+    except Exception as e:
+        logger.warning(f"Error cleaning text '{text}': {e}")
+        return str(text) if text is not None else ""
 
 def validate_dataframe(df, expected_columns):
     """Validate DataFrame has expected structure"""
