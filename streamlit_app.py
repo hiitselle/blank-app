@@ -402,7 +402,7 @@ def get_status_emoji(status_text):
     elif "no podium" in status_str:
         return "❌"
     else:
-        return "⏳"
+        return "🔄"
 
 def display_enhanced_metrics(df, competition_name):
     """Display enhanced metrics with better calculation"""
@@ -595,8 +595,8 @@ def display_boulder_results(df, competition_name):
                         worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
 
         # Color coding based on completion and competition type
-        position_emoji = "⏳"
-        card_class = "awaiting-result"
+        position_emoji = ""
+        card_class = ""
         
         try:
             rank_num = safe_numeric_conversion(rank)
@@ -608,46 +608,54 @@ def display_boulder_results(df, competition_name):
                 if worst_finish_match:
                     worst_finish_num = int(worst_finish_match.group(1))
             
-            if "Final" in competition_name:
-                # For Finals, use podium-based coloring (top 3)
-                if rank_num > 0 and rank_num <= 3:
-                    if worst_finish_num and worst_finish_num <= 3:
-                        card_class = "podium-position"  # Green - safe podium
+            # Only apply coloring if athlete has completed all 4 boulders OR has a valid score
+            if completed_boulders == 4 or (total_score not in ['N/A', '', None] and not pd.isna(total_score)):
+                if "Final" in competition_name:
+                    # For Finals, use podium-based coloring (top 3)
+                    if rank_num > 0 and rank_num <= 3:
+                        if worst_finish_num and worst_finish_num <= 3:
+                            card_class = "podium-position"  # Green - safe podium
+                            position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
+                        else:
+                            card_class = "podium-contention"  # Yellow - could drop off podium
+                            position_emoji = "⚠️"
+                    elif rank_num > 3:
+                        card_class = "no-podium"  # Red - out of podium positions
+                        position_emoji = "❌"
+                        
+                elif "Semis" in competition_name:
+                    # For Semis, use qualification-based coloring (top 8)
+                    if rank_num > 0 and rank_num <= 8:
+                        if worst_finish_num and worst_finish_num <= 8:
+                            card_class = "qualified"  # Green - safe qualification
+                            position_emoji = "✅"
+                        else:
+                            card_class = "podium-contention"  # Yellow - could drop out of top 8
+                            position_emoji = "⚠️"
+                    elif rank_num > 8:
+                        card_class = "eliminated"  # Red - out of qualifying positions
+                        position_emoji = "❌"
+                
+                else:
+                    # For other competitions, use standard rank-based coloring
+                    if rank_num > 0 and rank_num <= 3:
+                        card_class = "podium-position"
                         position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
-                    else:
-                        card_class = "podium-contention"  # Yellow - could drop off podium
-                        position_emoji = "⚠️"
-                elif rank_num > 3:
-                    card_class = "no-podium"  # Red - out of podium positions
-                    position_emoji = "💔"
-                    
-            elif "Semis" in competition_name:
-                # For Semis, use qualification-based coloring (top 8)
-                if rank_num > 0 and rank_num <= 8:
-                    if worst_finish_num and worst_finish_num <= 8:
-                        card_class = "qualified"  # Green - safe qualification
+                    elif rank_num > 0 and rank_num <= 8:
+                        card_class = "qualified"
                         position_emoji = "✅"
-                    else:
-                        card_class = "podium-contention"  # Yellow - could drop out of top 8
-                        position_emoji = "⚠️"
-                elif rank_num > 8:
-                    card_class = "eliminated"  # Red - out of qualifying positions
-                    position_emoji = "❌"
+                    elif rank_num > 0:
+                        card_class = "eliminated"
+                        position_emoji = "❌"
             
-            else:
-                # For other competitions, use standard rank-based coloring
-                if rank_num > 0 and rank_num <= 3:
-                    card_class = "podium-position"
-                    position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
-                elif rank_num > 0 and rank_num <= 8:
-                    card_class = "qualified"
-                    position_emoji = "✅"
-                elif rank_num > 0:
-                    card_class = "eliminated"
-                    position_emoji = "❌"
-                    
+            # If no complete score, just show rank number without special coloring
+            if not position_emoji and rank_num > 0:
+                position_emoji = f"#{rank_num}"
+                        
         except Exception as e:
             logger.warning(f"Error determining card class: {e}")
+            if rank_num > 0:
+                position_emoji = f"#{rank_num}"
         
         # Strategy display for boulder competitions after 3 boulders completed
         strategy_display = ""
@@ -690,7 +698,7 @@ def display_boulder_results(df, competition_name):
         
         st.markdown(f"""
         <div class="athlete-row {card_class}">
-            <strong>{position_emoji} #{rank} - {athlete}</strong><br>
+            <strong>{position_emoji} - {athlete}</strong><br>
             <small>{detail_text}</small>{strategy_display}
         </div>
         """, unsafe_allow_html=True)
@@ -812,21 +820,34 @@ def display_lead_results(df, competition_name):
         # Get status styling
         status_emoji = get_status_emoji(status)
         
-        # Determine card class based on status and score availability
-        if not has_score:
-            card_class = "awaiting-result"
-        elif "Qualified" in status or "✓✓" in status:
-            card_class = "qualified"
-        elif "Eliminated" in status or "✗" in status:
-            card_class = "eliminated"
-        elif "Podium" in status and "No Podium" not in status and "Contention" not in status:
-            card_class = "podium-position"
-        elif "Podium Contention" in status or "Contention" in status:
-            card_class = "podium-contention"
-        elif "No Podium" in status:
-            card_class = "no-podium"
-        else:
-            card_class = "awaiting-result"
+        # Determine card class based on status and score availability - only color if has score
+        card_class = ""
+        position_emoji = ""
+        
+        if has_score:
+            if "Qualified" in status or "✓✓" in status:
+                card_class = "qualified"
+                status_emoji = "✅"
+            elif "Eliminated" in status or "✗" in status:
+                card_class = "eliminated"
+                status_emoji = "❌"
+            elif "Podium" in status and "No Podium" not in status and "Contention" not in status:
+                card_class = "podium-position"
+                status_emoji = "🏆"
+            elif "Podium Contention" in status or "Contention" in status:
+                card_class = "podium-contention"
+                status_emoji = "⚠️"
+            elif "No Podium" in status:
+                card_class = "no-podium"
+                status_emoji = "❌"
+        
+        # Set position emoji
+        rank_num = safe_numeric_conversion(rank)
+        if rank_num > 0:
+            if has_score and card_class:
+                position_emoji = status_emoji
+            else:
+                position_emoji = f"#{rank_num}"
         
         # Show score if available, otherwise show "Awaiting Result"
         score_display = score if has_score else "Awaiting Result"
@@ -840,7 +861,7 @@ def display_lead_results(df, competition_name):
         
         st.markdown(f"""
         <div class="athlete-row {card_class}">
-            <strong>{status_emoji} #{rank} - {name}</strong><br>
+            <strong>{position_emoji} #{rank} - {name}</strong><br>
             <small>Score: {score_display} | Status: {status}{worst_finish_display}</small>{threshold_display}
         </div>
         """, unsafe_allow_html=True)
