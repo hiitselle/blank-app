@@ -79,15 +79,15 @@ st.markdown("""
     }
     
     .podium-position {
-        background: linear-gradient(135deg, #d4edda, #c3e6cb);
-        border: 2px solid #28a745;
-        color: #155724;
+        background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+        border: 2px solid #28a745 !important;
+        color: #155724 !important;
     }
     
     .podium-position .targets {
-        background-color: rgba(40, 167, 69, 0.25);
-        color: #155724;
-        border: 2px solid #28a745;
+        background-color: rgba(40, 167, 69, 0.25) !important;
+        color: #155724 !important;
+        border: 2px solid #28a745 !important;
     }
     
     .no-podium {
@@ -739,7 +739,7 @@ def display_boulder_results(df, competition_name):
             detail_text = f"Total: {total_score} | {boulder_display} | Progress: {completed_boulders}/4 boulders"
         
         st.markdown(f"""
-        <div class="athlete-row {card_class}">
+        <div class="athlete-row {card_class}"{debug_info}>
             <strong>{position_emoji} #{rank} - {athlete}</strong><br>
             <small>{detail_text}</small>{strategy_display}
         </div>
