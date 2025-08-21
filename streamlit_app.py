@@ -37,21 +37,6 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
     
-    .competition-card {
-        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border-left: 5px solid #4ecdc4;
-        margin: 1rem 0;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .competition-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-    
     .athlete-row {
         padding: 1rem;
         margin: 0.5rem 0;
@@ -62,22 +47,6 @@ st.markdown("""
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-    }
-    
-    .athlete-row::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
-        transform: translateX(-100%);
-        transition: transform 0.6s;
-    }
-    
-    .athlete-row:hover::before {
-        transform: translateX(100%);
     }
     
     .athlete-row:hover {
@@ -194,16 +163,6 @@ st.markdown("""
         overflow: hidden;
     }
     
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
-    }
-    
     .metric-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -259,21 +218,6 @@ st.markdown("""
         100% { opacity: 1; }
     }
     
-    .loading-spinner {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #4ecdc4;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
     .threshold-card {
         background: linear-gradient(135deg, #e3f2fd, #bbdefb);
         border: 2px solid #2196f3;
@@ -290,122 +234,6 @@ st.markdown("""
         padding: 1rem;
         margin: 1rem 0;
         color: #c62828;
-    }
-    
-    .success-card {
-        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-        border: 2px solid #4caf50;
-        border-radius: 10px;
-        padding: 1rem;
-        margin: 1rem 0;
-        color: #2e7d32;
-    }
-    
-    /* Mobile Responsiveness */
-    @media (max-width: 768px) {
-        .main-header {
-            padding: 1rem 0;
-            margin-bottom: 1rem;
-        }
-        
-        .main-header h1 {
-            font-size: 1.5rem;
-        }
-        
-        .main-header h3 {
-            font-size: 1rem;
-        }
-        
-        .metric-card {
-            margin-bottom: 1rem;
-            padding: 1rem;
-        }
-        
-        .metric-card h2 {
-            font-size: 1.4rem;
-        }
-        
-        .athlete-row {
-            font-size: 0.9rem;
-            padding: 0.8rem;
-            margin: 0.3rem 0;
-        }
-        
-        .athlete-row strong {
-            font-size: 1rem;
-        }
-        
-        .athlete-row small {
-            font-size: 0.8rem;
-        }
-        
-        .competition-card {
-            padding: 1rem;
-        }
-        
-        .targets {
-            font-size: 0.8rem !important;
-            padding: 0.4rem 0.6rem !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .main-header h1 {
-            font-size: 1.2rem;
-        }
-        
-        .main-header h3 {
-            font-size: 0.9rem;
-        }
-        
-        .metric-card h2 {
-            font-size: 1.2rem;
-        }
-        
-        .athlete-row {
-            font-size: 0.8rem;
-            padding: 0.6rem;
-        }
-        
-        .athlete-row strong {
-            font-size: 0.9rem;
-        }
-    }
-    
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-        .metric-card {
-            background: linear-gradient(135deg, #2d3748, #4a5568);
-            color: #e2e8f0;
-            border: 1px solid #4a5568;
-        }
-        
-        .metric-card h4 {
-            color: #a0aec0;
-        }
-        
-        .metric-card h2 {
-            color: #e2e8f0;
-        }
-    }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #4ecdc4, #45b7d1);
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #45b7d1, #4ecdc4);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -424,10 +252,10 @@ SHEETS_URLS = {
 
 # Configuration
 CONFIG = {
-    'CACHE_TTL': 30,  # Cache time in seconds
-    'AUTO_REFRESH_INTERVAL': 30,  # Auto refresh interval in seconds
-    'MAX_RETRIES': 3,  # Maximum retry attempts for data loading
-    'REQUEST_TIMEOUT': 15,  # Request timeout in seconds
+    'CACHE_TTL': 30,
+    'AUTO_REFRESH_INTERVAL': 30,
+    'MAX_RETRIES': 3,
+    'REQUEST_TIMEOUT': 15,
 }
 
 def safe_numeric_conversion(value, default=0):
@@ -449,7 +277,6 @@ def clean_text(text):
         # Remove common encoding artifacts
         cleaned = text.replace('Ã¢', '').replace('Ã¡', '').replace('â€™', "'")
         cleaned = cleaned.replace('â€œ', '"').replace('â€', '"').replace('â€"', '-')
-        
         return cleaned.strip()
     except Exception as e:
         logger.warning(f"Error cleaning text '{text}': {e}")
@@ -479,10 +306,9 @@ def get_competition_status(df, competition_name):
         if score_cols:
             has_scores = df[score_cols].notna().any().any()
             if has_scores:
-                # Check if all athletes have completed
                 total_athletes = len(df[df.iloc[:, 0].notna() & (df.iloc[:, 0] != '')])
                 completed_athletes = len(df[df[score_cols].notna().any(axis=1)])
-                if completed_athletes >= total_athletes * 0.8:  # 80% completion threshold
+                if completed_athletes >= total_athletes * 0.8:
                     return "completed", "✅"
                 else:
                     return "live", "🔴"
@@ -523,7 +349,7 @@ def load_sheet_data(url, retries=0):
         df = pd.read_csv(csv_data)
         
         # Clean up the dataframe
-        df = df.dropna(how='all')  # Remove completely empty rows
+        df = df.dropna(how='all')
         
         # Clean column names - strip whitespace and normalize
         df.columns = df.columns.str.strip()
@@ -547,7 +373,7 @@ def load_sheet_data(url, retries=0):
         
         if retries < CONFIG['MAX_RETRIES']:
             logger.info(f"Retrying... attempt {retries + 1}")
-            time.sleep(2 ** retries)  # Exponential backoff
+            time.sleep(2 ** retries)
             return load_sheet_data(url, retries + 1)
         
         st.error(f"🚫 {error_msg}")
@@ -631,7 +457,7 @@ def display_enhanced_metrics(df, competition_name):
             st.markdown(f'<div class="metric-card"><h4>🥇 Leader</h4><h2>{leader}</h2></div>', unsafe_allow_html=True)
             
     elif "Lead" in competition_name:
-        # Filter active athletes
+        # Filter active athletes (excluding threshold rows)
         active_df = df[
             df['Name'].notna() & 
             (df['Name'] != '') & 
@@ -734,7 +560,22 @@ def display_boulder_results(df, competition_name):
         athlete = clean_text(str(row.get('Athlete Name', 'Unknown')))
         total_score = row.get(score_col, 'N/A') if score_col else 'N/A'
         
-        # Color coding based on position and completion status
+        # Boulder scores and completion check
+        boulder_scores = []
+        completed_boulders = 0
+        for i in range(1, 5):
+            col_name = f'Boulder {i} Score (0-25)'
+            if col_name in df.columns:
+                score = row.get(col_name, '-')
+                if pd.notna(score) and str(score) != '-' and str(score) != '':
+                    boulder_scores.append(f"B{i}: {score}")
+                    completed_boulders += 1
+                else:
+                    boulder_scores.append(f"B{i}: -")
+        
+        boulder_display = " | ".join(boulder_scores) if boulder_scores else "No boulder data available"
+        
+        # Color coding based on completion and competition type
         if "Final" in competition_name and completed_boulders == 4:
             # For Finals with all 4 boulders completed, use status-based coloring
             status_col = None
@@ -790,21 +631,6 @@ def display_boulder_results(df, competition_name):
                 card_class = "awaiting-result"
                 position_emoji = "⏳"
         
-        # Boulder scores and completion check
-        boulder_scores = []
-        completed_boulders = 0
-        for i in range(1, 5):
-            col_name = f'Boulder {i} Score (0-25)'
-            if col_name in df.columns:
-                score = row.get(col_name, '-')
-                if pd.notna(score) and str(score) != '-' and str(score) != '':
-                    boulder_scores.append(f"B{i}: {score}")
-                    completed_boulders += 1
-                else:
-                    boulder_scores.append(f"B{i}: -")
-        
-        boulder_display = " | ".join(boulder_scores) if boulder_scores else "No boulder data available"
-        
         # Strategy display for boulder competitions after 3 boulders completed
         strategy_display = ""
         if ("Semis" in competition_name or "Final" in competition_name) and completed_boulders == 3:
@@ -839,17 +665,11 @@ def display_boulder_results(df, competition_name):
         
         # Check if athlete has completed all 4 boulders and add worst finish if available
         worst_finish_display = ""
-        if completed_boulders == 4:  # All boulders completed
+        if completed_boulders == 4:
             # Look for worst finish information
             worst_finish_col = None
             for col in df.columns:
                 if 'Worst Finish' in str(col) or 'worst finish' in str(col).lower():
-                    worst_finish_col = col
-                    break
-            
-            if worst_finish_col and worst_finish_col in df.columns:
-                worst_finish = row.get(worst_finish_col, 'N/A')
-                if worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
                     worst_finish_clean = clean_text(str(worst_finish))
                     if worst_finish_clean and worst_finish_clean != '-':
                         worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
@@ -904,357 +724,12 @@ def display_lead_results(df, competition_name):
     except Exception as e:
         logger.warning(f"Error extracting qualification thresholds: {e}")
     
-    # Filter out empty rows and scoring reference rows
+    # Filter out empty rows and scoring reference rows safely
     try:
         active_df = df[
             df['Name'].notna() & 
             (df['Name'] != '') & 
             (~df['Name'].astype(str).str.isdigit()) &
-            (~df['Name'].astype(str).str.contains(r'^\s*
-    
-    # Display enhanced metrics
-    display_enhanced_metrics(active_df, competition_name)
-    
-    st.markdown("#### 📋 Current Standings")
-    
-    # Show qualification thresholds if available
-    if qualification_info:
-        threshold_items = []
-        threshold_mapping = {
-            'Hold for 1st': ('🥇 1st', '#FFD700'),
-            'Hold for 2nd': ('🥈 2nd', '#C0C0C0'),
-            'Hold for 3rd': ('🥉 3rd', '#CD7F32'),
-            'Hold to Qualify': ('✅ Qualify', '#28a745'),
-            'Min to Qualify': ('⚠️ Min', '#ffc107')
-        }
-        
-        for key, value in qualification_info.items():
-            if key in threshold_mapping:
-                label, color = threshold_mapping[key]
-                threshold_items.append(f'<span style="color: {color}; font-weight: bold;">{label}: {value}</span>')
-        
-        if threshold_items:
-            st.markdown(f"""
-            <div class="threshold-card">
-                <h5>🎯 Qualification Thresholds</h5>
-                {' | '.join(threshold_items)}
-            </div>
-            """, unsafe_allow_html=True)
-    
-    # Sort by Current Rank if available
-    try:
-        if 'Current Rank' in active_df.columns:
-            active_df['Current Rank'] = pd.to_numeric(active_df['Current Rank'], errors='coerce')
-            active_df = active_df.sort_values('Current Rank', ascending=True).reset_index(drop=True)
-    except Exception as e:
-        logger.warning(f"Could not sort by rank: {e}")
-    
-    # Display results with enhanced formatting
-    for idx, row in active_df.iterrows():
-        name = clean_text(str(row.get('Name', 'Unknown')))
-        score = row.get('Manual Score', 'N/A')
-        rank = row.get('Current Rank', 'N/A')
-        status = clean_text(str(row.get('Status', 'Unknown')))
-        worst_finish = row.get('Worst Finish', 'N/A')
-        
-        # Determine if athlete has a score or is awaiting result
-        has_score = score not in ['N/A', '', None] and not pd.isna(score)
-        
-        # If no score yet and we have qualification info, show thresholds
-        threshold_display = ""
-        if not has_score and qualification_info:
-            thresholds = []
-            if 'Hold for 1st' in qualification_info:
-                thresholds.append(f'🥇 1st: {qualification_info["Hold for 1st"]}')
-            if 'Hold for 2nd' in qualification_info:
-                thresholds.append(f'🥈 2nd: {qualification_info["Hold for 2nd"]}')
-            if 'Hold for 3rd' in qualification_info:
-                thresholds.append(f'🥉 3rd: {qualification_info["Hold for 3rd"]}')
-            if 'Hold to Podium' in qualification_info:
-                thresholds.append(f'🏆 Podium: {qualification_info["Hold to Podium"]}')
-            if 'Min to Podium' in qualification_info:
-                thresholds.append(f'⚠️ Min: {qualification_info["Min to Podium"]}')
-            
-            if thresholds:
-                threshold_display = f"<br><div class='targets'><strong>Targets:</strong> {' | '.join(thresholds)}</div>"
-        
-        # Get status styling
-        status_emoji = get_status_emoji(status)
-        
-        # Determine card class based on status and score availability
-        if not has_score:
-            card_class = "awaiting-result"
-        elif "Qualified" in status or "✓✓" in status:
-            card_class = "qualified"
-        elif "Eliminated" in status or "✗" in status:
-            card_class = "eliminated"
-        elif "Podium" in status and "No Podium" not in status and "Contention" not in status:
-            card_class = "podium-position"
-        elif "Podium Contention" in status or "Contention" in status:
-            card_class = "podium-contention"
-        elif "No Podium" in status:
-            card_class = "no-podium"
-        else:
-            card_class = "awaiting-result"
-        
-        # Show score if available, otherwise show "Awaiting Result"
-        score_display = score if has_score else "Awaiting Result"
-        
-        # Add worst finish info if athlete has a score
-        worst_finish_display = ""
-        if has_score and worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
-            # Clean the worst finish value
-            worst_finish_clean = clean_text(str(worst_finish))
-            if worst_finish_clean and worst_finish_clean != '-':
-                worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
-        
-        st.markdown(f"""
-        <div class="athlete-row {card_class}">
-            <strong>{status_emoji} #{rank} - {name}</strong><br>
-            <small>Score: {score_display} | Status: {status}{worst_finish_display}</small>{threshold_display}
-        </div>
-        """, unsafe_allow_html=True)
-
-def display_data_health_check(filtered_competitions):
-    """Display data health check and system status"""
-    with st.expander("📊 System Status & Data Health", expanded=False):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("#### 🔍 Data Sources Status")
-            for comp_name, url in filtered_competitions.items():
-                try:
-                    df = load_sheet_data(url)
-                    if not df.empty:
-                        st.markdown(f"✅ **{comp_name}**: {len(df)} records")
-                    else:
-                        st.markdown(f"❌ **{comp_name}**: No data")
-                except Exception as e:
-                    st.markdown(f"⚠️ **{comp_name}**: Error loading")
-        
-        with col2:
-            st.markdown("#### ⚙️ System Information")
-            st.markdown(f"🕐 **Cache TTL**: {CONFIG['CACHE_TTL']} seconds")
-            st.markdown(f"🔄 **Auto-refresh**: {CONFIG['AUTO_REFRESH_INTERVAL']} seconds")
-            st.markdown(f"🔁 **Max Retries**: {CONFIG['MAX_RETRIES']}")
-            st.markdown(f"⏱️ **Request Timeout**: {CONFIG['REQUEST_TIMEOUT']} seconds")
-
-def get_filtered_competitions(competition_type, gender_filter, round_filter):
-    """Get filtered competitions based on user selection"""
-    filtered_competitions = {}
-    
-    for name, url in SHEETS_URLS.items():
-        include = True
-        
-        if competition_type != "All":
-            if competition_type.lower() not in name.lower():
-                include = False
-        
-        if gender_filter != "All":
-            if gender_filter.lower() not in name.lower():
-                include = False
-                
-        if round_filter != "All":
-            if round_filter.lower() not in name.lower():
-                include = False
-        
-        if include:
-            filtered_competitions[name] = url
-    
-    return filtered_competitions
-
-def main():
-    """Main application function with enhanced features"""
-    
-    # Initialize session state for auto-refresh
-    if 'last_refresh' not in st.session_state:
-        st.session_state.last_refresh = datetime.now()
-    if 'auto_refresh_enabled' not in st.session_state:
-        st.session_state.auto_refresh_enabled = False
-    
-    # Header with enhanced styling
-    st.markdown("""
-    <div class="main-header">
-        <h1>🧗‍♂️ IFSC 2025 World Championships</h1>
-        <h3>Live Competition Results Dashboard</h3>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Sidebar with enhanced controls
-    st.sidebar.title("🏆 Competition Control Center")
-    
-    # Auto-refresh controls
-    st.sidebar.markdown("### 🔄 Auto-Refresh Settings")
-    auto_refresh = st.sidebar.checkbox(
-        "Enable Auto-Refresh", 
-        value=st.session_state.auto_refresh_enabled,
-        help=f"Automatically refresh data every {CONFIG['AUTO_REFRESH_INTERVAL']} seconds"
-    )
-    st.session_state.auto_refresh_enabled = auto_refresh
-    
-    # Manual refresh with enhanced feedback
-    refresh_col1, refresh_col2 = st.sidebar.columns(2)
-    with refresh_col1:
-        if st.button("🔄 Refresh Now", type="primary"):
-            st.cache_data.clear()
-            st.session_state.last_refresh = datetime.now()
-            st.sidebar.success("✅ Data refreshed!")
-            time.sleep(1)
-            st.rerun()
-    
-    with refresh_col2:
-        if st.button("🗑️ Clear Cache"):
-            st.cache_data.clear()
-            st.sidebar.success("✅ Cache cleared!")
-    
-    # Last refresh time
-    time_since_refresh = datetime.now() - st.session_state.last_refresh
-    st.sidebar.caption(f"🕐 Last refresh: {time_since_refresh.seconds}s ago")
-    
-    # Competition filters with enhanced UI
-    st.sidebar.markdown("### 🎯 Competition Filters")
-    
-    competition_type = st.sidebar.selectbox(
-        "🏔️ Competition Type",
-        ["All", "Boulder", "Lead"],
-        help="Filter by climbing discipline"
-    )
-    
-    gender_filter = st.sidebar.selectbox(
-        "👤 Gender Category",
-        ["All", "Male", "Female"],
-        help="Filter by gender category"
-    )
-    
-    round_filter = st.sidebar.selectbox(
-        "🎯 Competition Round",
-        ["All", "Semis", "Final"],
-        help="Filter by competition round"
-    )
-    
-    # Filter competitions
-    filtered_competitions = get_filtered_competitions(competition_type, gender_filter, round_filter)
-    
-    # Display data health check
-    display_data_health_check(filtered_competitions)
-    
-    # Main content area
-    if len(filtered_competitions) == 0:
-        st.markdown("""
-        <div class="error-card">
-            <h3>⚠️ No Competitions Found</h3>
-            <p>No competitions match your current filter settings. Please adjust your filters to see results.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        return
-    
-    # Quick overview with enhanced metrics
-    st.markdown("### 🚀 Competition Overview")
-    
-    # Calculate overview metrics
-    total_competitions = len(filtered_competitions)
-    live_competitions = 0
-    completed_competitions = 0
-    upcoming_competitions = 0
-    
-    for comp_name, url in filtered_competitions.items():
-        df = load_sheet_data(url)
-        status, _ = get_competition_status(df, comp_name)
-        if status == "live":
-            live_competitions += 1
-        elif status == "completed":
-            completed_competitions += 1
-        else:
-            upcoming_competitions += 1
-    
-    # Overview metrics
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.markdown(f'<div class="metric-card"><h4>🏆 Total Competitions</h4><h2>{total_competitions}</h2></div>', unsafe_allow_html=True)
-    with col2:
-        st.markdown(f'<div class="metric-card"><h4>🔴 Live</h4><h2>{live_competitions}</h2></div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown(f'<div class="metric-card"><h4>✅ Completed</h4><h2>{completed_competitions}</h2></div>', unsafe_allow_html=True)
-    with col4:
-        st.markdown(f'<div class="metric-card"><h4>⏳ Upcoming</h4><h2>{upcoming_competitions}</h2></div>', unsafe_allow_html=True)
-    
-    # Detailed results with enhanced presentation
-    st.markdown("### 📊 Live Competition Results")
-    
-    # Handle single vs multiple competitions
-    if len(filtered_competitions) > 1:
-        # Create tabs for multiple competitions
-        tab_names = list(filtered_competitions.keys())
-        tabs = st.tabs(tab_names)
-        
-        for i, (comp_name, url) in enumerate(filtered_competitions.items()):
-            with tabs[i]:
-                with st.spinner(f"Loading {comp_name}..."):
-                    df = load_sheet_data(url)
-                    
-                current_time = datetime.now().strftime("%H:%M:%S")
-                st.caption(f"📡 Last updated: {current_time}")
-                
-                if "Boulder" in comp_name:
-                    display_boulder_results(df, comp_name)
-                elif "Lead" in comp_name:
-                    display_lead_results(df, comp_name)
-                else:
-                    if not df.empty:
-                        st.dataframe(df, use_container_width=True, hide_index=True)
-                    else:
-                        st.markdown('<div class="error-card">❌ No data available</div>', unsafe_allow_html=True)
-    else:
-        # Single competition view
-        comp_name, url = list(filtered_competitions.items())[0]
-        
-        with st.spinner(f"Loading {comp_name}..."):
-            df = load_sheet_data(url)
-            
-        current_time = datetime.now().strftime("%H:%M:%S")
-        st.caption(f"📡 Last updated: {current_time}")
-        
-        if "Boulder" in comp_name:
-            display_boulder_results(df, comp_name)
-        elif "Lead" in comp_name:
-            display_lead_results(df, comp_name)
-        else:
-            if not df.empty:
-                st.dataframe(df, use_container_width=True, hide_index=True)
-            else:
-                st.markdown('<div class="error-card">❌ No data available</div>', unsafe_allow_html=True)
-    
-    # Footer with additional information
-    st.markdown("---")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("**🏔️ IFSC World Championships 2025**")
-    with col2:
-        st.markdown("**📊 Real-time Results Dashboard**")
-    with col3:
-        st.markdown("**🔄 Auto-updating every 30 seconds**")
-    
-    # Auto-refresh logic (improved)
-    if st.session_state.auto_refresh_enabled:
-        time_since_last = (datetime.now() - st.session_state.last_refresh).total_seconds()
-        if time_since_last >= CONFIG['AUTO_REFRESH_INTERVAL']:
-            st.session_state.last_refresh = datetime.now()
-            st.rerun()
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        logger.error(f"Application error: {e}")
-        st.error(f"🚫 Application Error: {e}")
-        st.markdown("Please refresh the page or contact support if the issue persists.")
-        
-        # Show debug information in expander
-        with st.expander("🔧 Debug Information"):
-            st.code(f"Error: {e}")
-            st.code(f"Time: {datetime.now()}")
-            import traceback
-            st.code(traceback.format_exc()), na=True)) &
             (~df['Name'].astype(str).str.contains('Hold for', na=False)) &
             (~df['Name'].astype(str).str.contains('Min to', na=False))
         ]
@@ -1353,7 +828,6 @@ if __name__ == "__main__":
         # Add worst finish info if athlete has a score
         worst_finish_display = ""
         if has_score and worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
-            # Clean the worst finish value
             worst_finish_clean = clean_text(str(worst_finish))
             if worst_finish_clean and worst_finish_clean != '-':
                 worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
@@ -1364,30 +838,6 @@ if __name__ == "__main__":
             <small>Score: {score_display} | Status: {status}{worst_finish_display}</small>{threshold_display}
         </div>
         """, unsafe_allow_html=True)
-
-def display_data_health_check(filtered_competitions):
-    """Display data health check and system status"""
-    with st.expander("📊 System Status & Data Health", expanded=False):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("#### 🔍 Data Sources Status")
-            for comp_name, url in filtered_competitions.items():
-                try:
-                    df = load_sheet_data(url)
-                    if not df.empty:
-                        st.markdown(f"✅ **{comp_name}**: {len(df)} records")
-                    else:
-                        st.markdown(f"❌ **{comp_name}**: No data")
-                except Exception as e:
-                    st.markdown(f"⚠️ **{comp_name}**: Error loading")
-        
-        with col2:
-            st.markdown("#### ⚙️ System Information")
-            st.markdown(f"🕐 **Cache TTL**: {CONFIG['CACHE_TTL']} seconds")
-            st.markdown(f"🔄 **Auto-refresh**: {CONFIG['AUTO_REFRESH_INTERVAL']} seconds")
-            st.markdown(f"🔁 **Max Retries**: {CONFIG['MAX_RETRIES']}")
-            st.markdown(f"⏱️ **Request Timeout**: {CONFIG['REQUEST_TIMEOUT']} seconds")
 
 def get_filtered_competitions(competition_type, gender_filter, round_filter):
     """Get filtered competitions based on user selection"""
@@ -1484,9 +934,6 @@ def main():
     
     # Filter competitions
     filtered_competitions = get_filtered_competitions(competition_type, gender_filter, round_filter)
-    
-    # Display data health check
-    display_data_health_check(filtered_competitions)
     
     # Main content area
     if len(filtered_competitions) == 0:
@@ -1604,4 +1051,10 @@ if __name__ == "__main__":
             st.code(f"Error: {e}")
             st.code(f"Time: {datetime.now()}")
             import traceback
-            st.code(traceback.format_exc())
+            st.code(traceback.format_exc())col = col
+                    break
+            
+            if worst_finish_col and worst_finish_col in df.columns:
+                worst_finish = row.get(worst_finish_col, 'N/A')
+                if worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
+                    worst_finish_
