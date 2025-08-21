@@ -739,7 +739,7 @@ def display_boulder_results(df, competition_name):
             detail_text = f"Total: {total_score} | {boulder_display} | Progress: {completed_boulders}/4 boulders"
         
         st.markdown(f"""
-        <div class="athlete-row {card_class}"{debug_info}>
+        <div class="athlete-row {card_class}">
             <strong>{position_emoji} #{rank} - {athlete}</strong><br>
             <small>{detail_text}</small>{strategy_display}
         </div>
