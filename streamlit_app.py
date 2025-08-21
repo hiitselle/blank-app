@@ -405,9 +405,9 @@ def get_status_emoji(status_text):
     elif "podium" in status_str and "no podium" not in status_str:
         return "🏆"
     elif "no podium" in status_str:
-        return "💔"
+        return "❌"
     else:
-        return "🔥"
+        return "No Score"
 
 def display_enhanced_metrics(df, competition_name):
     """Display enhanced metrics with better calculation"""
