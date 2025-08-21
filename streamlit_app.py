@@ -385,10 +385,6 @@ def load_sheet_data(url, retries=0):
         st.error(f"🚫 {error_msg}")
         return pd.DataFrame()
 
-def get_status_emoji(status_text):
-    """Get emoji based on status with enhanced detection"""
-    if pd.isna(status_text):
-        return "⏳"
     
     status_str = str(status_text).lower()
     
