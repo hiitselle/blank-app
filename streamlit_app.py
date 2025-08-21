@@ -405,9 +405,9 @@ def get_status_emoji(status_text):
     elif "podium" in status_str and "no podium" not in status_str:
         return "🏆"
     elif "no podium" in status_str:
-        return "❌"
+        return "💔"
     else:
-        return "No Score"
+        return "🔥"
 
 def display_enhanced_metrics(df, competition_name):
     """Display enhanced metrics with better calculation"""
@@ -665,7 +665,7 @@ def display_boulder_results(df, competition_name):
         
         # Check if athlete has completed all 4 boulders and add worst finish if available
         worst_finish_display = ""
-        if completed_boulders == 4:
+        if completed_boulders == 4:  # Works for both Semis AND Finals
             # Look for worst finish information
             worst_finish_col = None
             for col in df.columns:
