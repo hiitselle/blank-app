@@ -312,8 +312,7 @@ def get_competition_status(df, competition_name):
                     return "completed", "✅"
                 else:
                     return "live", "🔴"
-            else:
-                return "upcoming", "⏳"
+
     elif "Lead" in competition_name:
         if 'Manual Score' in df.columns:
             has_scores = df['Manual Score'].notna().any()
@@ -324,10 +323,7 @@ def get_competition_status(df, competition_name):
                     return "completed", "✅"
                 else:
                     return "live", "🔴"
-            else:
-                return "upcoming", "⏳"
-    
-    return "upcoming", "⏳"
+           
 
 @st.cache_data(ttl=CONFIG['CACHE_TTL'])
 def load_sheet_data(url, retries=0):
@@ -405,9 +401,9 @@ def get_status_emoji(status_text):
     elif "podium" in status_str and "no podium" not in status_str:
         return "🏆"
     elif "no podium" in status_str:
-        return "💔"
+        return "❌"
     else:
-        return "🔥"
+        return "."
 
 def display_enhanced_metrics(df, competition_name):
     """Display enhanced metrics with better calculation"""
@@ -629,12 +625,7 @@ def display_boulder_results(df, competition_name):
                     elif rank_num > 3:
                         card_class = "no-podium"  # Red - out of podium positions
                         position_emoji = "💔"
-                    else:
-                        card_class = "awaiting-result"
-                        position_emoji = "⏳"
-                except:
-                    card_class = "awaiting-result"
-                    position_emoji = "⏳"
+                 
             else:
                 # If not all 4 boulders completed, don't apply special coloring
                 try:
@@ -653,12 +644,7 @@ def display_boulder_results(df, competition_name):
                     elif rank_num > 8:
                         card_class = "eliminated"  # Red - out of qualifying positions
                         position_emoji = "❌"
-                    else:
-                        card_class = "awaiting-result"
-                        position_emoji = "⏳"
-                except:
-                    card_class = "awaiting-result"
-                    position_emoji = "⏳"
+                    
             else:
                 # If not all 4 boulders completed, don't apply special coloring
                 try:
@@ -672,12 +658,7 @@ def display_boulder_results(df, competition_name):
                     elif rank_num > 0:
                         card_class = "eliminated"
                         position_emoji = "❌"
-                    else:
-                        card_class = "awaiting-result"
-                        position_emoji = "⏳"
-                except:
-                    card_class = "awaiting-result"
-                    position_emoji = "⏳"
+                    
         else:
             # For other competitions, use standard rank-based coloring
             try:
@@ -691,12 +672,7 @@ def display_boulder_results(df, competition_name):
                 elif rank_num > 0:
                     card_class = "eliminated"
                     position_emoji = "❌"
-                else:
-                    card_class = "awaiting-result"
-                    position_emoji = "⏳"
-            except:
-                card_class = "awaiting-result"
-                position_emoji = "⏳"
+             
         
         # Strategy display for boulder competitions after 3 boulders completed
         strategy_display = ""
@@ -1028,8 +1004,7 @@ def main():
         st.markdown(f'<div class="metric-card"><h4>🔴 Live</h4><h2>{live_competitions}</h2></div>', unsafe_allow_html=True)
     with col3:
         st.markdown(f'<div class="metric-card"><h4>✅ Completed</h4><h2>{completed_competitions}</h2></div>', unsafe_allow_html=True)
-    with col4:
-        st.markdown(f'<div class="metric-card"><h4>⏳ Upcoming</h4><h2>{upcoming_competitions}</h2></div>', unsafe_allow_html=True)
+
     
     # Detailed results with enhanced presentation
     st.markdown("### 📊 Live Competition Results")
@@ -1108,15 +1083,7 @@ if __name__ == "__main__":
             st.code(f"Time: {datetime.now()}")
             import traceback
             st.code(traceback.format_exc())_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
-                    elif rank_num > 0:
-                        card_class = "awaiting-result"
-                        position_emoji = "⏳"
-                    else:
-                        card_class = "awaiting-result"
-                        position_emoji = "⏳"
-                except:
-                    card_class = "awaiting-result"
-                    position_emoji = "⏳"
+                  
         elif "Semis" in competition_name:
             # For Semis, use qualification-based coloring (top 8)
             if completed_boulders == 4:
