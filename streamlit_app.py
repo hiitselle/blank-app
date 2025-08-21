@@ -873,7 +873,7 @@ def display_lead_results(df, competition_name):
             df['Name'].notna() & 
             (df['Name'] != '') & 
             (~df['Name'].astype(str).str.isdigit()) &
-            (~df['Name'].astype(str).str.contains(r'^\s*, na=True)) &
+            (~df['Name'].astype(str).str.contains(r'^\s*$', na=True)) &
             (~df['Name'].astype(str).str.contains('Hold for', na=False)) &
             (~df['Name'].astype(str).str.contains('Min to', na=False))
         ]
