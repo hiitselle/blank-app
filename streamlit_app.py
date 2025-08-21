@@ -578,15 +578,15 @@ def display_boulder_results(df, competition_name):
         # Color coding based on completion and competition type
         if "Final" in competition_name and completed_boulders == 4:
             # For Finals with all 4 boulders completed, use status-based coloring
-            status_col = None
+            status_col_name = None
             for col in df.columns:
                 if 'Status' in str(col):
-                    status_col = col
+                    status_col_name = col
                     break
             
             athlete_status = ""
-            if status_col and status_col in df.columns:
-                athlete_status = clean_text(str(row.get(status_col, '')))
+            if status_col_name and status_col_name in df.columns:
+                athlete_status = clean_text(str(row.get(status_col_name, '')))
             
             # Finals status-based coloring
             if "Podium" in athlete_status and "Contention" not in athlete_status and "No Podium" not in athlete_status:
@@ -670,6 +670,12 @@ def display_boulder_results(df, competition_name):
             worst_finish_col = None
             for col in df.columns:
                 if 'Worst Finish' in str(col) or 'worst finish' in str(col).lower():
+                    worst_finish_col = col
+                    break
+            
+            if worst_finish_col and worst_finish_col in df.columns:
+                worst_finish = row.get(worst_finish_col, 'N/A')
+                if worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
                     worst_finish_clean = clean_text(str(worst_finish))
                     if worst_finish_clean and worst_finish_clean != '-':
                         worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
@@ -1051,10 +1057,4 @@ if __name__ == "__main__":
             st.code(f"Error: {e}")
             st.code(f"Time: {datetime.now()}")
             import traceback
-            st.code(traceback.format_exc())col = col
-                    break
-            
-            if worst_finish_col and worst_finish_col in df.columns:
-                worst_finish = row.get(worst_finish_col, 'N/A')
-                if worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
-                    worst_finish_
+            st.code(traceback.format_exc())
