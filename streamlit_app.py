@@ -910,7 +910,7 @@ def display_lead_results(df, competition_name):
             df['Name'].notna() & 
             (df['Name'] != '') & 
             (~df['Name'].astype(str).str.isdigit()) &
-            (~df['Name'].astype(str).str.contains(r'^\s*$'
+            (~df['Name'].astype(str).str.contains(r'^\s*
     
     # Display enhanced metrics
     display_enhanced_metrics(active_df, competition_name)
