@@ -692,17 +692,20 @@ def display_boulder_results(df, competition_name):
         # Check if athlete has completed all 4 boulders and add worst finish if available
         worst_finish_display = ""
         if completed_boulders == 4:  # Works for both Semis AND Finals
-            # Look for worst finish information - exact match first, then variations
+            # Look for worst finish information - different column names for different events
             worst_finish_col = None
             
-            # First try exact match
-            if 'Worst Finish' in df.columns:
+            # For Boulder events (both Semis and Finals), look for "Worst Possible Finish"
+            if "Boulder" in competition_name and 'Worst Possible Finish' in df.columns:
+                worst_finish_col = 'Worst Possible Finish'
+            # For Lead events, look for "Worst Finish"
+            elif "Lead" in competition_name and 'Worst Finish' in df.columns:
                 worst_finish_col = 'Worst Finish'
             else:
-                # Try other variations
+                # Try other variations as fallback
                 for col in df.columns:
                     col_str = str(col).strip().lower()
-                    if 'worst' in col_str and 'finish' in col_str:
+                    if ('worst' in col_str and 'possible' in col_str and 'finish' in col_str) or ('worst' in col_str and 'finish' in col_str):
                         worst_finish_col = col
                         break
             
