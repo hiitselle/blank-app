@@ -734,24 +734,61 @@ def display_boulder_results(df, competition_name):
         athlete = clean_text(str(row.get('Athlete Name', 'Unknown')))
         total_score = row.get(score_col, 'N/A') if score_col else 'N/A'
         
-        # Color coding based on position
-        try:
-            rank_num = safe_numeric_conversion(rank)
-            if rank_num > 0 and rank_num <= 3:
-                card_class = "podium-position"
-                position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
-            elif rank_num > 0 and rank_num <= 8:
-                card_class = "qualified"
-                position_emoji = "✅"
-            elif rank_num > 0:
-                card_class = "eliminated"
-                position_emoji = "❌"
+        # Color coding based on position and completion status
+        if "Final" in competition_name and completed_boulders == 4:
+            # For Finals with all 4 boulders completed, use status-based coloring
+            status_col = None
+            for col in df.columns:
+                if 'Status' in str(col):
+                    status_col = col
+                    break
+            
+            athlete_status = ""
+            if status_col and status_col in df.columns:
+                athlete_status = clean_text(str(row.get(status_col, '')))
+            
+            # Finals status-based coloring
+            if "Podium" in athlete_status and "Contention" not in athlete_status and "No Podium" not in athlete_status:
+                card_class = "podium-position"  # Green
+                position_emoji = "🏆"
+            elif "Podium Contention" in athlete_status or "Contention" in athlete_status:
+                card_class = "podium-contention"  # Yellow
+                position_emoji = "⚠️"
+            elif "No Podium" in athlete_status:
+                card_class = "no-podium"  # Red
+                position_emoji = "💔"
             else:
+                # Fallback to rank-based if no clear status
+                try:
+                    rank_num = safe_numeric_conversion(rank)
+                    if rank_num > 0 and rank_num <= 3:
+                        card_class = "podium-position"
+                        position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
+                    else:
+                        card_class = "awaiting-result"
+                        position_emoji = "📊"
+                except:
+                    card_class = "awaiting-result"
+                    position_emoji = "📊"
+        else:
+            # For Semis or incomplete Finals, use rank-based coloring
+            try:
+                rank_num = safe_numeric_conversion(rank)
+                if rank_num > 0 and rank_num <= 3:
+                    card_class = "podium-position"
+                    position_emoji = "🥇" if rank_num == 1 else "🥈" if rank_num == 2 else "🥉"
+                elif rank_num > 0 and rank_num <= 8:
+                    card_class = "qualified"
+                    position_emoji = "✅"
+                elif rank_num > 0:
+                    card_class = "eliminated"
+                    position_emoji = "❌"
+                else:
+                    card_class = "awaiting-result"
+                    position_emoji = "⏳"
+            except:
                 card_class = "awaiting-result"
                 position_emoji = "⏳"
-        except:
-            card_class = "awaiting-result"
-            position_emoji = "⏳"
         
         # Boulder scores and completion check
         boulder_scores = []
@@ -873,7 +910,351 @@ def display_lead_results(df, competition_name):
             df['Name'].notna() & 
             (df['Name'] != '') & 
             (~df['Name'].astype(str).str.isdigit()) &
-            (~df['Name'].astype(str).str.contains(r'^\s*$', na=True)) &
+            (~df['Name'].astype(str).str.contains(r'^\s*
+    
+    # Display enhanced metrics
+    display_enhanced_metrics(active_df, competition_name)
+    
+    st.markdown("#### 📋 Current Standings")
+    
+    # Show qualification thresholds if available
+    if qualification_info:
+        threshold_items = []
+        threshold_mapping = {
+            'Hold for 1st': ('🥇 1st', '#FFD700'),
+            'Hold for 2nd': ('🥈 2nd', '#C0C0C0'),
+            'Hold for 3rd': ('🥉 3rd', '#CD7F32'),
+            'Hold to Qualify': ('✅ Qualify', '#28a745'),
+            'Min to Qualify': ('⚠️ Min', '#ffc107')
+        }
+        
+        for key, value in qualification_info.items():
+            if key in threshold_mapping:
+                label, color = threshold_mapping[key]
+                threshold_items.append(f'<span style="color: {color}; font-weight: bold;">{label}: {value}</span>')
+        
+        if threshold_items:
+            st.markdown(f"""
+            <div class="threshold-card">
+                <h5>🎯 Qualification Thresholds</h5>
+                {' | '.join(threshold_items)}
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Sort by Current Rank if available
+    try:
+        if 'Current Rank' in active_df.columns:
+            active_df['Current Rank'] = pd.to_numeric(active_df['Current Rank'], errors='coerce')
+            active_df = active_df.sort_values('Current Rank', ascending=True).reset_index(drop=True)
+    except Exception as e:
+        logger.warning(f"Could not sort by rank: {e}")
+    
+    # Display results with enhanced formatting
+    for idx, row in active_df.iterrows():
+        name = clean_text(str(row.get('Name', 'Unknown')))
+        score = row.get('Manual Score', 'N/A')
+        rank = row.get('Current Rank', 'N/A')
+        status = clean_text(str(row.get('Status', 'Unknown')))
+        worst_finish = row.get('Worst Finish', 'N/A')
+        
+        # Determine if athlete has a score or is awaiting result
+        has_score = score not in ['N/A', '', None] and not pd.isna(score)
+        
+        # If no score yet and we have qualification info, show thresholds
+        threshold_display = ""
+        if not has_score and qualification_info:
+            thresholds = []
+            if 'Hold for 1st' in qualification_info:
+                thresholds.append(f'🥇 1st: {qualification_info["Hold for 1st"]}')
+            if 'Hold for 2nd' in qualification_info:
+                thresholds.append(f'🥈 2nd: {qualification_info["Hold for 2nd"]}')
+            if 'Hold for 3rd' in qualification_info:
+                thresholds.append(f'🥉 3rd: {qualification_info["Hold for 3rd"]}')
+            if 'Hold to Podium' in qualification_info:
+                thresholds.append(f'🏆 Podium: {qualification_info["Hold to Podium"]}')
+            if 'Min to Podium' in qualification_info:
+                thresholds.append(f'⚠️ Min: {qualification_info["Min to Podium"]}')
+            
+            if thresholds:
+                threshold_display = f"<br><div class='targets'><strong>Targets:</strong> {' | '.join(thresholds)}</div>"
+        
+        # Get status styling
+        status_emoji = get_status_emoji(status)
+        
+        # Determine card class based on status and score availability
+        if not has_score:
+            card_class = "awaiting-result"
+        elif "Qualified" in status or "✓✓" in status:
+            card_class = "qualified"
+        elif "Eliminated" in status or "✗" in status:
+            card_class = "eliminated"
+        elif "Podium" in status and "No Podium" not in status and "Contention" not in status:
+            card_class = "podium-position"
+        elif "Podium Contention" in status or "Contention" in status:
+            card_class = "podium-contention"
+        elif "No Podium" in status:
+            card_class = "no-podium"
+        else:
+            card_class = "awaiting-result"
+        
+        # Show score if available, otherwise show "Awaiting Result"
+        score_display = score if has_score else "Awaiting Result"
+        
+        # Add worst finish info if athlete has a score
+        worst_finish_display = ""
+        if has_score and worst_finish not in ['N/A', '', None] and not pd.isna(worst_finish):
+            # Clean the worst finish value
+            worst_finish_clean = clean_text(str(worst_finish))
+            if worst_finish_clean and worst_finish_clean != '-':
+                worst_finish_display = f" | Worst Finish: {worst_finish_clean}"
+        
+        st.markdown(f"""
+        <div class="athlete-row {card_class}">
+            <strong>{status_emoji} #{rank} - {name}</strong><br>
+            <small>Score: {score_display} | Status: {status}{worst_finish_display}</small>{threshold_display}
+        </div>
+        """, unsafe_allow_html=True)
+
+def display_data_health_check(filtered_competitions):
+    """Display data health check and system status"""
+    with st.expander("📊 System Status & Data Health", expanded=False):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 🔍 Data Sources Status")
+            for comp_name, url in filtered_competitions.items():
+                try:
+                    df = load_sheet_data(url)
+                    if not df.empty:
+                        st.markdown(f"✅ **{comp_name}**: {len(df)} records")
+                    else:
+                        st.markdown(f"❌ **{comp_name}**: No data")
+                except Exception as e:
+                    st.markdown(f"⚠️ **{comp_name}**: Error loading")
+        
+        with col2:
+            st.markdown("#### ⚙️ System Information")
+            st.markdown(f"🕐 **Cache TTL**: {CONFIG['CACHE_TTL']} seconds")
+            st.markdown(f"🔄 **Auto-refresh**: {CONFIG['AUTO_REFRESH_INTERVAL']} seconds")
+            st.markdown(f"🔁 **Max Retries**: {CONFIG['MAX_RETRIES']}")
+            st.markdown(f"⏱️ **Request Timeout**: {CONFIG['REQUEST_TIMEOUT']} seconds")
+
+def get_filtered_competitions(competition_type, gender_filter, round_filter):
+    """Get filtered competitions based on user selection"""
+    filtered_competitions = {}
+    
+    for name, url in SHEETS_URLS.items():
+        include = True
+        
+        if competition_type != "All":
+            if competition_type.lower() not in name.lower():
+                include = False
+        
+        if gender_filter != "All":
+            if gender_filter.lower() not in name.lower():
+                include = False
+                
+        if round_filter != "All":
+            if round_filter.lower() not in name.lower():
+                include = False
+        
+        if include:
+            filtered_competitions[name] = url
+    
+    return filtered_competitions
+
+def main():
+    """Main application function with enhanced features"""
+    
+    # Initialize session state for auto-refresh
+    if 'last_refresh' not in st.session_state:
+        st.session_state.last_refresh = datetime.now()
+    if 'auto_refresh_enabled' not in st.session_state:
+        st.session_state.auto_refresh_enabled = False
+    
+    # Header with enhanced styling
+    st.markdown("""
+    <div class="main-header">
+        <h1>🧗‍♂️ IFSC 2025 World Championships</h1>
+        <h3>Live Competition Results Dashboard</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Sidebar with enhanced controls
+    st.sidebar.title("🏆 Competition Control Center")
+    
+    # Auto-refresh controls
+    st.sidebar.markdown("### 🔄 Auto-Refresh Settings")
+    auto_refresh = st.sidebar.checkbox(
+        "Enable Auto-Refresh", 
+        value=st.session_state.auto_refresh_enabled,
+        help=f"Automatically refresh data every {CONFIG['AUTO_REFRESH_INTERVAL']} seconds"
+    )
+    st.session_state.auto_refresh_enabled = auto_refresh
+    
+    # Manual refresh with enhanced feedback
+    refresh_col1, refresh_col2 = st.sidebar.columns(2)
+    with refresh_col1:
+        if st.button("🔄 Refresh Now", type="primary"):
+            st.cache_data.clear()
+            st.session_state.last_refresh = datetime.now()
+            st.sidebar.success("✅ Data refreshed!")
+            time.sleep(1)
+            st.rerun()
+    
+    with refresh_col2:
+        if st.button("🗑️ Clear Cache"):
+            st.cache_data.clear()
+            st.sidebar.success("✅ Cache cleared!")
+    
+    # Last refresh time
+    time_since_refresh = datetime.now() - st.session_state.last_refresh
+    st.sidebar.caption(f"🕐 Last refresh: {time_since_refresh.seconds}s ago")
+    
+    # Competition filters with enhanced UI
+    st.sidebar.markdown("### 🎯 Competition Filters")
+    
+    competition_type = st.sidebar.selectbox(
+        "🏔️ Competition Type",
+        ["All", "Boulder", "Lead"],
+        help="Filter by climbing discipline"
+    )
+    
+    gender_filter = st.sidebar.selectbox(
+        "👤 Gender Category",
+        ["All", "Male", "Female"],
+        help="Filter by gender category"
+    )
+    
+    round_filter = st.sidebar.selectbox(
+        "🎯 Competition Round",
+        ["All", "Semis", "Final"],
+        help="Filter by competition round"
+    )
+    
+    # Filter competitions
+    filtered_competitions = get_filtered_competitions(competition_type, gender_filter, round_filter)
+    
+    # Display data health check
+    display_data_health_check(filtered_competitions)
+    
+    # Main content area
+    if len(filtered_competitions) == 0:
+        st.markdown("""
+        <div class="error-card">
+            <h3>⚠️ No Competitions Found</h3>
+            <p>No competitions match your current filter settings. Please adjust your filters to see results.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+    
+    # Quick overview with enhanced metrics
+    st.markdown("### 🚀 Competition Overview")
+    
+    # Calculate overview metrics
+    total_competitions = len(filtered_competitions)
+    live_competitions = 0
+    completed_competitions = 0
+    upcoming_competitions = 0
+    
+    for comp_name, url in filtered_competitions.items():
+        df = load_sheet_data(url)
+        status, _ = get_competition_status(df, comp_name)
+        if status == "live":
+            live_competitions += 1
+        elif status == "completed":
+            completed_competitions += 1
+        else:
+            upcoming_competitions += 1
+    
+    # Overview metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f'<div class="metric-card"><h4>🏆 Total Competitions</h4><h2>{total_competitions}</h2></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<div class="metric-card"><h4>🔴 Live</h4><h2>{live_competitions}</h2></div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown(f'<div class="metric-card"><h4>✅ Completed</h4><h2>{completed_competitions}</h2></div>', unsafe_allow_html=True)
+    with col4:
+        st.markdown(f'<div class="metric-card"><h4>⏳ Upcoming</h4><h2>{upcoming_competitions}</h2></div>', unsafe_allow_html=True)
+    
+    # Detailed results with enhanced presentation
+    st.markdown("### 📊 Live Competition Results")
+    
+    # Handle single vs multiple competitions
+    if len(filtered_competitions) > 1:
+        # Create tabs for multiple competitions
+        tab_names = list(filtered_competitions.keys())
+        tabs = st.tabs(tab_names)
+        
+        for i, (comp_name, url) in enumerate(filtered_competitions.items()):
+            with tabs[i]:
+                with st.spinner(f"Loading {comp_name}..."):
+                    df = load_sheet_data(url)
+                    
+                current_time = datetime.now().strftime("%H:%M:%S")
+                st.caption(f"📡 Last updated: {current_time}")
+                
+                if "Boulder" in comp_name:
+                    display_boulder_results(df, comp_name)
+                elif "Lead" in comp_name:
+                    display_lead_results(df, comp_name)
+                else:
+                    if not df.empty:
+                        st.dataframe(df, use_container_width=True, hide_index=True)
+                    else:
+                        st.markdown('<div class="error-card">❌ No data available</div>', unsafe_allow_html=True)
+    else:
+        # Single competition view
+        comp_name, url = list(filtered_competitions.items())[0]
+        
+        with st.spinner(f"Loading {comp_name}..."):
+            df = load_sheet_data(url)
+            
+        current_time = datetime.now().strftime("%H:%M:%S")
+        st.caption(f"📡 Last updated: {current_time}")
+        
+        if "Boulder" in comp_name:
+            display_boulder_results(df, comp_name)
+        elif "Lead" in comp_name:
+            display_lead_results(df, comp_name)
+        else:
+            if not df.empty:
+                st.dataframe(df, use_container_width=True, hide_index=True)
+            else:
+                st.markdown('<div class="error-card">❌ No data available</div>', unsafe_allow_html=True)
+    
+    # Footer with additional information
+    st.markdown("---")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("**🏔️ IFSC World Championships 2025**")
+    with col2:
+        st.markdown("**📊 Real-time Results Dashboard**")
+    with col3:
+        st.markdown("**🔄 Auto-updating every 30 seconds**")
+    
+    # Auto-refresh logic (improved)
+    if st.session_state.auto_refresh_enabled:
+        time_since_last = (datetime.now() - st.session_state.last_refresh).total_seconds()
+        if time_since_last >= CONFIG['AUTO_REFRESH_INTERVAL']:
+            st.session_state.last_refresh = datetime.now()
+            st.rerun()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        logger.error(f"Application error: {e}")
+        st.error(f"🚫 Application Error: {e}")
+        st.markdown("Please refresh the page or contact support if the issue persists.")
+        
+        # Show debug information in expander
+        with st.expander("🔧 Debug Information"):
+            st.code(f"Error: {e}")
+            st.code(f"Time: {datetime.now()}")
+            import traceback
+            st.code(traceback.format_exc()), na=True)) &
             (~df['Name'].astype(str).str.contains('Hold for', na=False)) &
             (~df['Name'].astype(str).str.contains('Min to', na=False))
         ]
