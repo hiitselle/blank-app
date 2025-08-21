@@ -666,12 +666,19 @@ def display_boulder_results(df, competition_name):
         # Check if athlete has completed all 4 boulders and add worst finish if available
         worst_finish_display = ""
         if completed_boulders == 4:  # Works for both Semis AND Finals
-            # Look for worst finish information
+            # Look for worst finish information - exact match first, then variations
             worst_finish_col = None
-            for col in df.columns:
-                if 'Worst Finish' in str(col) or 'worst finish' in str(col).lower():
-                    worst_finish_col = col
-                    break
+            
+            # First try exact match
+            if 'Worst Finish' in df.columns:
+                worst_finish_col = 'Worst Finish'
+            else:
+                # Try other variations
+                for col in df.columns:
+                    col_str = str(col).strip().lower()
+                    if 'worst' in col_str and 'finish' in col_str:
+                        worst_finish_col = col
+                        break
             
             if worst_finish_col and worst_finish_col in df.columns:
                 worst_finish = row.get(worst_finish_col, 'N/A')
@@ -1058,4 +1065,3 @@ if __name__ == "__main__":
             st.code(f"Time: {datetime.now()}")
             import traceback
             st.code(traceback.format_exc())
-            
